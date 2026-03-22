@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>UMT Pro Command Center</title>
+    <link rel="icon" type="image/png" href="UMT-Logo - Copy.png">
+
+    <script src="data.js"></script>
+
+    <script>
+      MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;600;700&display=swap');
+        :root {
+            --bg-main: #0D1117; --bg-panel: #161B22; --border-color: #30363D;
+            --text-primary: #C9D1D9; --text-secondary: #8B949E; --accent-cyan: #2F81F7;
+            --accent-green: #39D353; --accent-red: #F85149;
+            --accent-purple: #A371F7; /* Warna baru untuk Sprint Materi */
+        }
+        body { background-color: var(--bg-main); color: var(--text-primary); font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+        }
+        @media (min-width: 768px) {
+            .panel {
+                padding: 1.5rem;
+            }
+        }
+        .bottom-nav-link.active { color: var(--accent-cyan); }
+        .sidebar-link.active { background-color: #30363D; color: white; }
+        .card-item { background-color: #21262D; transition: transform 0.2s; cursor: pointer; }
+        .card-item:hover { transform: translateY(-4px); background-color: #30363D; }
+        .quiz-option { border: 2px solid var(--border-color); }
+        .quiz-option:hover { border-color: var(--accent-cyan); }
+        .quiz-option.selected { border-color: var(--accent-cyan); background-color: rgba(47, 129, 247, 0.2); }
+        .correct-answer { background-color: rgba(57, 211, 83, 0.1); border-left: 4px solid var(--accent-green); }
+        .wrong-answer { background-color: rgba(248, 81, 73, 0.1); border-left: 4px solid var(--accent-red); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .nav-btn:disabled { background-color: #30363D; color: #8B949E; cursor: not-allowed; }
+
+        .dropdown-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            user-select: none;
+        }
+        .dropdown-button {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            width: 100%;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .dropdown-button:hover {
+            border-color: var(--accent-cyan);
+        }
+        .dropdown-button span {
+            font-weight: 600;
+        }
+        .dropdown-button i {
+            transition: transform 0.3s ease;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            z-index: 10;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .dropdown-menu.open {
+            display: block;
+        }
+        .dropdown-button.open i {
+            transform: rotate(180deg);
+        }
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: var(--accent-cyan);
+            color: white;
+        }
+
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
+        .toast-in { animation: slideInRight 0.5s forwards; }
+        .toast-out { animation: fadeOut 0.5s forwards; }
+
+        .forum-container { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 2.5rem 2rem; max-width: 800px; margin: 2rem auto; text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+        .intro h1 { font-size: 2.25rem; font-weight: 700; color: var(--accent-cyan); margin-bottom: 0.75rem; }
+        .intro p { color: var(--text-secondary); max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+        .community-links { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border-color); }
+        .community-links h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1.5rem; }
+        .community-btn { text-decoration: none; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s ease; border: 2px solid transparent; }
+        .community-btn i { font-size: 1.25rem; }
+        .community-btn:hover { transform: translateY(-4px); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); }
+        .whatsapp-btn { background-color: #25D366; }
+        .whatsapp-btn:hover { background-color: #1DAA54; }
+        .telegram-btn { background-color: #229ED9; }
+        .telegram-btn:hover { background-color: #1C84B3; }
+        .community-links .subtext { color: var(--text-secondary); margin-top: 1.5rem; font-size: 0.875rem; }
+
+        @media (max-width: 768px) {
+            .intro h1 { font-size: 1.75rem; }
+            .forum-container { padding: 2rem 1rem; margin: 1rem; }
+            .community-btn { width: 100%; justify-content: center; }
+        }
+
+        @media (max-width: 640px) {
+            #single-explanation-container .text-lg { font-size: 1.125rem; }
+            #single-explanation-container .text-sm { font-size: 0.95rem; line-height: 1.5; }
+            #single-explanation-container .font-bold { font-size: 1.125rem; }
+            .quiz-nav-buttons { flex-direction: column; gap: 0.75rem; }
+            .quiz-nav-buttons > button { width: 100%; justify-content: center; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s ease; }
+        .modal-box { background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1.5rem; width: 90%; max-width: 450px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); animation: scaleIn 0.3s ease; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; }
+        .modal-content { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 0.75rem; }
+        .modal-btn { padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 600; border: none; cursor: pointer; transition: background-color 0.2s; }
+        .modal-btn-confirm { background-color: var(--accent-cyan); color: white; }
+        .modal-btn-confirm:hover { background-color: #2577e3; }
+        .modal-btn-danger { background-color: var(--accent-red); color: white; }
+        .modal-btn-danger:hover { background-color: #e4433b; }
+        .modal-btn-cancel { background-color: #30363D; color: var(--text-primary); }
+        .modal-btn-cancel:hover { background-color: #484f58; }
+        
+        .explanation-container-vertical {
+            max-height: 45vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background-color: #0d1117;
+        }
+        .explanation-content-inner {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            min-height: 100%;
+            overflow-y: hidden;
+        }
+
+        .quiz-nav-container {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .quiz-nav-item {
+            flex-shrink: 0;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-nav-item:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .quiz-nav-item.current {
+            background-color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: white;
+        }
+        .quiz-nav-item.answered {
+            background-color: #39D35330;
+            border-color: var(--accent-green);
+        }
+/* Mengunci scroll body saat modal kamus terbuka */
+        body.kamus-modal-open {
+            overflow: hidden;
+        }
+
+        /* Search & Filter Kamus */
+        #kamus-search {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+        .filter-group {
+            margin-bottom: 2rem;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        #kamus-filter {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238B949E' class='bi bi-chevron-down'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+            padding-right: 2.5rem;
+        }
+
+        /* Hasil Pencarian Kamus */
+        #kamus-results-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 1rem;
+        }
+        .result-item {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .result-item:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-3px);
+            background-color: #2a3038;
+        }
+        .result-item h3 { margin: 0 0 5px 0; color: var(--text-primary); }
+        .result-item p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Modal Kamus (Sudah di-namespaced agar tidak konflik) */
+        .kamus-modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .kamus-modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .kamus-modal-content {
+            position: relative; 
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 30px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh; 
+            overflow-y: auto;   
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .kamus-modal-overlay.active .kamus-modal-content {
+            transform: scale(1);
+        }
+        .kamus-modal-content h2 { 
+            margin-top: 0; 
+            padding-right: 30px; 
+            color: var(--accent-cyan);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .kamus-modal-content h3 {
+             color: var(--text-primary);
+             font-size: 1.25rem;
+             margin-top: 2rem;
+             margin-bottom: 0.5rem;
+        }
+        .kamus-modal-content p, .kamus-modal-content li { color: var(--text-secondary); }
+        
+        /* Tombol Close Modal Kamus */
+        .kamus-modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 2.2rem;
+            font-weight: 300;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s ease;
+            z-index: 10;
+        }
+        .kamus-modal-close-btn:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Konten di dalam Modal Kamus */
+        #kamus-modal-intuition {
+            background-color: rgba(47, 129, 247, 0.1); 
+            border-left: 4px solid var(--accent-cyan);
+            padding: 1rem; 
+            margin: 1.5rem 0; 
+            border-radius: 0 0.5rem 0.5rem 0;
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+        .kamus-knowledge-network { margin-top: 2rem; }
+        .kamus-knowledge-network h4 { color: var(--text-secondary); }
+        
+        .kamus-nav-link {
+            display: inline-block;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .kamus-nav-link:hover {
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+        }
+        /* Navigasi Mobile Scroll Button */
+.nav-scroll-btn-active {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+/* Memastikan scroll smooth */
+#sidebar-nav {
+    scroll-behavior: smooth;
+}
+    </style>
+</head>
+<body class="text-white">
+
+    <div class="flex min-h-screen">
+        <aside class="fixed bottom-0 left-0 z-50 w-full bg-[var(--bg-panel)] border-t border-[var(--border-color)] md:relative md:w-64 md:h-screen md:flex md:flex-col md:border-t-0 md:border-r md:p-6">
+    <h1 class="hidden text-xl font-bold mb-10 text-cyan-400 md:block md:text-2xl">UMT Pro</h1>
+    
+    <div class="relative w-full h-16 md:h-auto">
+        
+        <button id="nav-scroll-left" class="md:hidden absolute left-0 top-0 bottom-0 z-20 w-8 flex items-center justify-center bg-gradient-to-r from-gray-900 to-transparent text-white opacity-0 pointer-events-none transition-opacity duration-300">
+            <i class="fa-solid fa-chevron-left drop-shadow-md"></i>
+        </button>
+
+        <nav id="sidebar-nav" class="no-scrollbar flex overflow-x-auto h-full scroll-smooth md:flex-col md:space-y-4 md:h-auto md:overflow-visible">
+            <div class="flex flex-nowrap items-center h-full w-full md:flex-col md:items-stretch md:gap-0 md:px-0 md:w-auto">
+                
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('dashboard', this)">
+                    <i class="fa-solid fa-chart-pie text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Dash</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('materi', this)">
+                    <i class="fa-solid fa-book text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Materi</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('perpustakaan', this)">
+                    <i class="fa-solid fa-book-atlas text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Perpus</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('bank_soal', this)">
+                    <i class="fa-solid fa-list-check text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Soal</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('snbt_tka', this)">
+                    <i class="fa-solid fa-graduation-cap text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">SNBT</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('sprint_materi', this)">
+                    <i class="fa-solid fa-bolt text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Sprint</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('umt_lab', this)">
+                    <i class="fa-solid fa-flask-vial text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Lab</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('video', this)">
+                    <i class="fa-solid fa-video text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Video</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('forum', this)">
+                    <i class="fa-solid fa-comments text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Forum</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('informasi', this)">
+                    <i class="fa-solid fa-info-circle text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Info</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('pengaturan', this)">
+                    <i class="fa-solid fa-user-gear text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Akun</span>
+                </a>
+                <a href="#" class="sidebar-link bottom-nav-link flex-shrink-0 w-[25vw] md:w-full flex flex-col items-center justify-center p-2 text-center text-gray-400 hover:text-white md:rounded-lg md:flex-row md:justify-start md:gap-4 md:hover:bg-gray-700 transition-colors" onclick="event.preventDefault(); navigateTo('kamus', this)">
+                    <i class="fa-solid fa-spell-check text-lg md:w-6"></i><span class="text-xs mt-1 md:text-base md:mt-0 truncate w-full">Kamus</span>
+                </a>
+            </div>
+        </nav>
+
+        <button id="nav-scroll-right" class="md:hidden absolute right-0 top-0 bottom-0 z-20 w-8 flex items-center justify-center bg-gradient-to-l from-gray-900 to-transparent text-white opacity-0 pointer-events-none transition-opacity duration-300">
+            <i class="fa-solid fa-chevron-right drop-shadow-md"></i>
+        </button>
+
+    </div>
+
+    <div class="hidden mt-auto md:block">
+        <button onclick="logout()" class="w-full bg-red-800 hover:bg-red-700 text-white py-2 px-3 rounded">
+            <i class="fa-solid fa-right-from-bracket"></i><span class="md:inline"> Logout</span>
+        </button>
+    </div>
+        </aside>
+
+        <main id="app-content" class="flex-1 p-4 md:p-6 space-y-6 pb-24 md:pb-6 overflow-x-hidden"></main>
+    </div>
+
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-3 w-80"></div>
+    <div id="modal-container" style="display: none;"></div>
+
+<script>
+// === [STRUKTUR DATA] ===
+if (typeof allContentData !== 'undefined') {
+    allContentData.snbtTka = {
+        materi: [
+            {
+                id: 'snbt-mat-01', title: 'Matematika Wajib & Tingkat Lanjut (TKA)', summary: 'Kumpulan konsep dan rumus penting untuk menaklukkan soal-soal matematika.', icon: 'fa-solid fa-brain',
+                content: {
+                    "Bilangan": [
+                        { id: 'snbt-mat-sub-01', title: 'Konsep Bilangan dan Sifat-sifatnya', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Bilangan-01.html' },
+                        { id: 'snbt-mat-sub-02', title: 'FPB dan KPK', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Bilangan-02.html' },
+                        { id: 'snbt-mat-sub-03', title: 'Pecahan, Desimal, dan Persentase', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Bilangan-03.html' },
+                        { id: 'snbt-mat-sub-04', title: 'Eksponen dan Bentuk Akar', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Bilangan-04.html' },
+                    ],
+                    "Aljabar": [
+                        { id: 'snbt-mat-sub-05', title: 'Persamaan & Pertidaksamaan Linear Satu Variabel', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-01.html' },
+                        { id: 'snbt-mat-sub-06', title: 'Sistem Persamaan Linear (SPLDV & SPLTV)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-02.html' },
+                        { id: 'snbt-mat-sub-07', title: 'Sistem Pertidaksamaan Linear dan Program Linear', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-03.html' },
+                        { id: 'snbt-mat-sub-08', title: 'Konsep Dasar Relasi Dan Fungsi', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-04.html' },
+                        { id: 'snbt-mat-sub-09', title: 'Jenis-jenis Fungsi dan Grafiknya', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-05.html' },
+                        { id: 'snbt-mat-sub-10', title: 'Operasi, Komposisi, dan Invers Fungsi', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-06.html' },
+                        { id: 'snbt-mat-sub-11', title: 'Aplikasi dan Pemodelan Fungsi', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-07.html' },
+                        { id: 'snbt-mat-sub-12', title: 'Konsep Dasar Barisan dan Deret', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-08.html' },
+                        { id: 'snbt-mat-sub-13', title: 'Barisan dan Deret Aritmetika', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-09.html' },
+                        { id: 'snbt-mat-sub-14', title: 'Barisan dan Deret Geometri', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-10.html' },
+                        { id: 'snbt-mat-sub-15', title: 'Aplikasi dan Pemodelan Barisan dan Deret', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Aljabar-11.html' },
+                    ],
+                    "Geometri Dan Pengukuran": [
+                        { id: 'snbt-mat-sub-16', title: 'Hubungan Antar Sudut, Garis, dan Bidang', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Geometri-01.html' },
+                        { id: 'snbt-mat-sub-17', title: 'Bangun Datar (Geometri Bidang)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Geometri-02.html' },
+                        { id: 'snbt-mat-sub-18', title: 'Bangun Ruang (Geometri Ruang)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Geometri-03.html' },
+                        { id: 'snbt-mat-sub-19', title: 'Transformasi Geometri', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Geometri-04.html' },
+                    ],
+                    "Data dan Peluang": [
+                        { id: 'snbt-mat-sub-05', title: 'Penyajian dan Interpretasi Data', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Data-01.html' },
+                        { id: 'snbt-mat-sub-05', title: 'Ukuran Pemusatan Data (Data Tunggal & Kelompok)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Data-02.html' },
+                        { id: 'snbt-mat-sub-05', title: 'Ukuran Penyebaran Data (Data Tunggal & Kelompok)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Data-03.html' },
+                        { id: 'snbt-mat-sub-05', title: 'Kaidah Pencacahan (Counting Rules)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Data-04.html' },
+                        { id: 'snbt-mat-sub-05', title: 'Peluang (Probability)', type: 'UMT - Learning', filePath: 'Materi-TKA-SNBT/Data-05.html' },
+                    ],
+                    "Trigonometri": [],
+                }
+            },
+            {
+                id: 'snbt-pbm-01', title: 'Matematika SNBT', summary: 'Tingkatkan pemahaman teks, analisis wacana, dan kaidah penulisan.', icon: 'fa-solid fa-book-open-reader',
+                content: {}
+            },
+        ],
+        latihan: [
+            {
+                id: 'tka-tryout-01', title: 'Latihan Soal TKA Matematika', summary: 'Simulasi ujian lengkap dengan 15 soal untuk mengukur kesiapanmu.', icon: 'fa-solid fa-file-lines',
+                content: {
+                    "Paket Try Out": [
+                        { id: 'tka-to-sub-01', title: 'Mulai Latihan Soal - 01', type: 'Latihan Soal', filePath: 'Latihan Soal-Tryout/TKA-Latsol-01.html' },
+                    ]
+                }
+            },
+        ]
+    };
+
+    allContentData.sprintMateri = [
+        {
+            id: 'sprint-nm-01',
+            title: 'Sprint Nilai Mutlak',
+            summary: 'Latihan soal terstruktur untuk menguasai konsep nilai mutlak dari dasar hingga tingkat lanjut.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-nm-latsol-01', title: 'Nilai Mutlak - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/nilai-mutlak.html' },
+                ]
+            }
+        },
+        {
+            id: 'sprint-fk-01',
+            title: 'Sprint Fungsi Kuadrat',
+            summary: 'Latihan intensif untuk memahami dan menyelesaikan soal-soal fungsi kuadrat.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-fk-latsol-01', title: 'Fungsi Kuadrat - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/fungsi-kuadrat.html' },
+                ]
+            }
+        },
+        {
+            id: 'sprint-ba-01',
+            title: 'Sprint Bentuk Akar',
+            summary: 'Latihan intensif untuk memahami dan menyelesaikan soal-soal bentuk akar.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-ba-latsol-01', title: 'Bentuk Akar - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/bentuk-akar.html' },
+                ]
+            }
+        },
+        {
+            id: 'sprint-fdk-01',
+            title: 'Sprint FPB dan KPK',
+            summary: 'Latihan intensif untuk memahami dan menyelesaikan soal-soal FPB dan KPK.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-fdk-latsol-01', title: 'FPB dan KPK - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/fpb-kpk.html' },
+                ]
+            }
+        },
+        {
+            id: 'sprint-lm-01',
+            title: 'Sprint Logika Matematika',
+            summary: 'Latihan intensif untuk memahami dan menyelesaikan soal-soal Logika Matematika.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-lm-latsol-01', title: 'Logika Matematika - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/logika-matematika.html' },
+                ]
+            }
+        },
+        {
+            id: 'sprint-bdd-01',
+            title: 'Sprint Barisan dan Deret',
+            summary: 'Latihan intensif untuk memahami dan menyelesaikan soal-soal Barisan dan Deret.',
+            icon: 'fa-solid fa-file-lines',
+            content: {
+                "Level Latihan": [
+                    { id: 'sprint-bdd-latsol-01', title: 'Barisan dan Deret - Sprint 01', type: 'Latihan Sprint', filePath: 'UMT-Sprint/barisan-deret.html' },
+                ]
+            }
+        },
+    ];
+}
+
+const kamusData = {
+    'logaritma': {
+        term: "Logaritma",
+        category: "aljabar",
+        intuition: "Logaritma adalah sebuah PERTANYAAN. Ia bertanya: 'Pangkat berapa?'",
+        penjelasan: "$^2\\log 8$ secara harfiah bertanya, '2 harus dipangkatkan berapa agar hasilnya 8?'. Jawabannya adalah 3. Ini adalah alat untuk 'membuka' atau mencari pangkat dalam operasi eksponensial.",
+        formal: "Secara formal, jika $a^c = b$, maka $^a\\log b = c$. Dimana $a$ adalah basis, $b$ adalah numerus, dan $c$ adalah hasilnya (pangkat).",
+        prerequisites: ['eksponen'],
+        related: ['persamaan_log', 'skala_ph']
+    },
+    'eksponen': {
+        term: "Eksponen (Pangkat)",
+        category: "aljabar",
+        intuition: "Eksponen adalah cara singkat menulis perkalian berulang.",
+        penjelasan: "$3^4$ berarti $3 \\times 3 \\times 3 \\times 3$. Ini adalah 'gembok' yang 'dikunci' oleh logaritma.",
+        formal: "Bentuk $a^n$ (dibaca 'a pangkat n') adalah operasi di mana $a$ (basis) dikalikan dengan dirinya sendiri sebanyak $n$ kali (eksponen).",
+        prerequisites: [],
+        related: ['logaritma', 'persamaan_eksponen']
+    },
+    'limit': {
+        term: "Limit",
+        category: "kalkulus",
+        intuition: "Limit adalah tentang NILAI TUJUAN. Ia tidak bertanya 'ada di mana?', tapi 'menuju ke mana?'",
+        penjelasan: "Bayangkan Anda berjalan mendekati sebuah titik di grafik. Limit adalah nilai Y yang Anda dekati, tidak peduli apakah titik itu sendiri berlubang atau tidak. Kuncinya adalah pendekatan dari kiri dan kanan harus bertemu.",
+        formal: "Notasi $\\lim_{x \\to c} f(x) = L$ berarti nilai $f(x)$ dapat dibuat sedekat mungkin ke $L$ dengan membuat $x$ cukup dekat (tetapi tidak sama dengan) $c$.",
+        prerequisites: ['fungsi'],
+        related: ['turunan', 'kontinuitas']
+    },
+    'turunan': {
+        term: "Turunan (Derivative)",
+        category: "kalkulus",
+        intuition: "Alat untuk mengukur KEMIRINGAN SESAAT atau laju perubahan instan.",
+        penjelasan: "Jika Anda melihat grafik, turunan memberi tahu Anda seberapa curam grafik itu di TITIK MANAPUN. Ini dihitung dengan mengambil limit dari gradien antara dua titik yang dibuat sangat dekat.",
+        formal: "Turunan dari $f(x)$ adalah $f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$.",
+        prerequisites: ['limit', 'fungsi', 'gradien'],
+        related: ['integral', 'laju_perubahan', 'optimasi']
+    },
+    'pythagoras': {
+        term: "Teorema Pythagoras",
+        category: "geometri",
+        intuition: "Aturan khusus untuk menemukan panjang sisi miring dari segitiga siku-siku.",
+        penjelasan: "Pada segitiga siku-siku, kuadrat dari sisi miring (sisi terpanjang) sama dengan jumlah dari kuadrat dua sisi lainnya. Ini adalah fondasi dari hampir semua perhitungan jarak dalam geometri.",
+        formal: "Jika $a$ dan $b$ adalah sisi siku-siku dan $c$ adalah sisi miring, maka $a^2 + b^2 = c^2$.",
+        prerequisites: [],
+        related: ['jarak_titik', 'lingkaran_satuan', 'trigonometri']
+    },
+    'kalkulus': { term: "Kalkulus", category: "kalkulus", intuition: "Studi tentang perubahan.", penjelasan: "Kalkulus adalah cabang matematika yang berfokus pada limit, turunan, integral, dan deret tak hingga. Ini adalah bahasa untuk mendeskripsikan gerakan dan perubahan.", formal: "-", prerequisites: ['aljabar', 'fungsi'], related: ['limit', 'turunan', 'integral'] },
+    'integral': { term: "Integral", category: "kalkulus", intuition: "Alat untuk menghitung LUAS di bawah kurva.", penjelasan: "Jika turunan adalah tentang memecah sesuatu (kemiringan), integral adalah tentang menggabungkannya kembali (luas).", formal: "-", prerequisites: ['turunan'], related: ['luas_area', 'volume_benda_putar'] },
+    'fungsi': { term: "Fungsi", category: "aljabar", intuition: "Sebuah 'mesin' matematika.", penjelasan: "Anda memasukkan 'input' (x), dan mesin 'fungsi' (f) memberi Anda satu 'output' (y) yang unik.", formal: "-", prerequisites: [], related: ['limit', 'turunan'] },
+    'gradien': { term: "Gradien (Kemiringan)", category: "geometri", intuition: "Ukuran kecuraman sebuah garis.", penjelasan: "Dihitung sebagai 'perubahan vertikal (rise) dibagi perubahan horizontal (run)'.", formal: "$m = \\frac{y_2 - y_1}{x_2 - x_1}$", prerequisites: [], related: ['turunan'] },
+    'kontinuitas': { term: "Kontinuitas", category: "kalkulus", intuition: "Artinya grafik 'tersambung' dan tidak putus.", penjelasan: "Sebuah fungsi kontinu di suatu titik jika Anda bisa menggambar grafiknya melewati titik itu tanpa mengangkat pensil Anda. Secara teknis, nilai limitnya harus sama dengan nilai fungsinya.", formal: "Fungsi $f$ kontinu di $c$ jika $\\lim_{x \\to c} f(x) = f(c)$", prerequisites: ['limit'], related: ['limit'] }
+};
+
+const CONFIG = {
+    API_URL: 'https://script.google.com/macros/s/AKfycbyP3jpWgs6ikQcA-9MsInRZYbLFQsshjxgo22twwXrzpACSPV9BREogrKUd-60crXV_mg/exec',
+    LOGIN_PAGE: '../Login/',
+    SESSION_KEYS: {
+        TOKEN: 'sessionToken',
+        EMAIL: 'sessionEmail',
+    },
+    STORAGE_KEYS: {
+        COMPLETED_ITEMS: 'userCompletedItems',
+        LAST_SCORE: 'lastQuizScore',
+        WELCOME_POPUP: 'welcomePopupShown',
+    }
+};
+
+let heartbeatIntervalId = null;
+let currentQuizData = null;
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let currentExplanationIndex = 0;
+let currentSnbtViewId = null;
+let currentSprintViewId = null;
+
+async function verifySession(token, email) {
+    try {
+        const response = await fetch(CONFIG.API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'check_session', token: token, email: email })
+        });
+        const result = await response.json();
+        if (!result.isValid) {
+            forceLogout("Sesi Anda tidak valid atau telah berakhir. Silakan login kembali.");
+        }
+    } catch (error) {
+        console.error("Heartbeat check failed:", error);
+        showToast("Gagal terhubung ke server. Memeriksa kembali...", "error");
+    }
+}
+function startSessionHeartbeat(token, email) {
+    if (heartbeatIntervalId) clearInterval(heartbeatIntervalId);
+    verifySession(token, email);
+    heartbeatIntervalId = setInterval(() => verifySession(token, email), 60000);
+}
+function forceLogout(message) {
+    if (heartbeatIntervalId) {
+        clearInterval(heartbeatIntervalId);
+        heartbeatIntervalId = null;
+    }
+    const onConfirmAction = () => {
+        sessionStorage.removeItem(CONFIG.SESSION_KEYS.TOKEN);
+        sessionStorage.removeItem(CONFIG.SESSION_KEYS.EMAIL);
+        window.location.href = CONFIG.LOGIN_PAGE;
+    };
+    showConfirmationModal({
+        title: 'Sesi Berakhir',
+        message: message,
+        confirmText: 'OK',
+        confirmAction: onConfirmAction,
+        showCancelButton: false
+    });
+}
+function logout() {
+    showConfirmationModal({
+        title: 'Konfirmasi Logout',
+        message: 'Apakah Anda yakin ingin keluar dari sesi Anda?',
+        confirmText: 'Logout',
+        confirmButtonClass: 'modal-btn-danger',
+        confirmAction: () => {
+            sessionStorage.removeItem(CONFIG.SESSION_KEYS.TOKEN);
+            sessionStorage.removeItem(CONFIG.SESSION_KEYS.EMAIL);
+            if (heartbeatIntervalId) {
+                clearInterval(heartbeatIntervalId);
+                heartbeatIntervalId = null;
+            }
+            window.location.href = CONFIG.LOGIN_PAGE;
+        }
+    });
+}
+
+const appContent = document.getElementById('app-content');
+
+const pageRenderers = {
+    'dashboard': renderDashboardPage,
+    'materi': renderMateriPage,
+    'kamus': renderKamusPage,
+    'perpustakaan': renderPerpustakaanPage,
+    'bank_soal': renderBankSoalPage,
+    'snbt_tka': renderSnbtTkaPage,
+    'sprint_materi': renderSprintMateriPage,
+    'video': renderVideoPage,
+    'forum': renderForumPage,
+    'informasi': renderInformasiPage,
+    'pengaturan': renderPengaturanPage,
+    'umt_lab': renderUmtLabPage,
+};
+
+function navigateTo(page, clickedElement) {
+    if (page !== 'pengaturan') {
+        sessionStorage.setItem('lastActivePage', page);
+    }
+    if (page === 'snbt_tka') {
+        currentSnbtViewId = null;
+    }
+    if (page === 'sprint_materi') {
+        currentSprintViewId = null;
+    }
+
+    document.querySelectorAll('.sidebar-link, .bottom-nav-link').forEach(link => link.classList.remove('active'));
+    if (clickedElement) {
+        const targetLink = Array.from(document.querySelectorAll('.sidebar-link, .bottom-nav-link'))
+                                 .find(a => a.getAttribute('onclick').includes(`'${page}'`));
+        if(targetLink) targetLink.classList.add('active');
+    }
+
+    const renderFunction = pageRenderers[page];
+    if (renderFunction) {
+        renderFunction();
+    } else {
+        console.error(`Tidak ada renderer untuk halaman: ${page}`);
+        appContent.innerHTML = `<p class="text-center text-red-500">Halaman tidak ditemukan.</p>`;
+    }
+}
+
+function renderDashboardPage() {
+    appContent.innerHTML = `
+        <header class="panel flex justify-between items-center">
+            <div>
+                <h2 id="user-greeting" class="text-xl font-bold"></h2>
+                <p class="text-sm text-gray-400">Selamat datang di Command Center Anda.</p>
+            </div>
+        </header>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="col-span-1 lg:col-span-2 space-y-6">
+                <div class="panel">
+                    <h4 class="font-bold text-lg mb-4">Status Anda</h4>
+                    <div id="status-container" class="space-y-4"></div>
+                </div>
+                <div id="last-score-widget-container"></div>
+                <div id="last-activity-container" class="space-y-6"></div>
+            </div>
+            <div class="col-span-1 space-y-6">
+                <div class="panel">
+                    <h4 class="font-bold text-lg mb-4">Pencapaian</h4>
+                    <div id="lencana-container" class="flex gap-4"></div>
+                </div>
+                <div class="panel">
+                    <h4 class="font-bold text-lg mb-4">Info Terbaru UMT</h4>
+                    <div id="social-media-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    initializeAppDashboardWidgets();
+}
+function renderMateriPage() {
+    let accordionHTML = '';
+    const materiData = allContentData.materi;
+
+    for (const gradeKey in materiData) {
+        const itemsHTML = materiData[gradeKey].map(item => `
+            <li id="card-${item.id}"
+                class="card-item-list block p-3 rounded-md hover:bg-gray-700 cursor-pointer"
+                onclick="openMateri('${item.id}', '${item.filePath}')">
+                <span class="font-semibold">${item.title}</span>
+                <span class="block text-xs text-gray-400">${item.type}</span>
+            </li>
+        `).join('');
+
+        accordionHTML += `
+            <div class="accordion-item border-b border-gray-700" data-accordion-group>
+                <h2>
+                    <button type="button" class="accordion-button flex items-center justify-between w-full p-4 font-semibold text-left text-cyan-300">
+                        <span>${gradeKey}</span>
+                        <i class="accordion-icon fa-solid fa-chevron-down shrink-0 transition-transform duration-200"></i>
+                    </button>
+                </h2>
+                <div class="accordion-content hidden p-2">
+                    <ul class="space-y-2">${itemsHTML}</ul>
+                </div>
+            </div>
+        `;
+    }
+
+    const materiPageHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-cyan-400">Materi UMT Learning</h2>
+            <p class="text-sm text-gray-400 mb-6">Cari atau pilih Materi UMT Learning yang ingin kamu pelajari.</p>
+            <div class="relative mb-6">
+                <input type="text" id="materi-search-input" class="w-full bg-gray-900/80 border border-gray-600 rounded-lg py-2 pl-10 pr-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:outline-none" placeholder="Ketik untuk mencari materi...">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+            </div>
+            <div class="border border-gray-700 rounded-lg bg-gray-900/50">
+                ${accordionHTML}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = materiPageHTML;
+    setupAccordionListeners();
+    setupMateriSearch();
+}
+
+function setupAccordionListeners() {
+    document.querySelectorAll('.accordion-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const content = button.parentElement.nextElementSibling;
+            const icon = button.querySelector('.accordion-icon');
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        });
+    });
+}
+
+function openSnbtCategory(categoryId) {
+    currentSnbtViewId = categoryId;
+    renderSnbtTkaPage();
+}
+
+function renderSnbtTkaPage() {
+    if (!currentSnbtViewId) {
+        renderSnbtMainPage();
+    } else {
+        renderSnbtDetailPage(currentSnbtViewId);
+    }
+}
+
+function renderSnbtMainPage() {
+    const materiCards = allContentData.snbtTka.materi.map(item => `
+        <div class="card-item p-5 rounded-lg flex flex-col" onclick="openSnbtCategory('${item.id}')">
+            <div class="flex items-center gap-4 mb-3">
+                <i class="${item.icon} text-cyan-400 text-2xl w-8 text-center"></i>
+                <h3 class="font-bold text-lg text-cyan-300">${item.title}</h3>
+            </div>
+            <p class="text-sm text-gray-400 flex-grow">${item.summary}</p>
+            <div class="mt-4 text-xs font-mono bg-gray-900/50 text-cyan-300 rounded-full px-3 py-1 self-start">
+                Materi Belajar
+            </div>
+        </div>
+    `).join('');
+
+    const latihanCards = allContentData.snbtTka.latihan.map(item => `
+        <div class="card-item p-5 rounded-lg flex flex-col" onclick="openSnbtCategory('${item.id}')">
+            <div class="flex items-center gap-4 mb-3">
+                <i class="${item.icon} text-green-400 text-2xl w-8 text-center"></i>
+                <h3 class="font-bold text-lg text-green-300">${item.title}</h3>
+            </div>
+            <p class="text-sm text-gray-400 flex-grow">${item.summary}</p>
+            <div class="mt-4 text-xs font-mono bg-gray-900/50 text-green-300 rounded-full px-3 py-1 self-start">
+                Latihan Soal
+            </div>
+        </div>
+    `).join('');
+
+    const pageHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-cyan-400">Persiapan SNBT & TKA</h2>
+            <p class="text-sm text-gray-400 mb-8">Fokuskan persiapanmu dengan materi dan latihan soal yang terstruktur.</p>
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-4 border-b-2 border-cyan-500 pb-2">Materi Belajar</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    ${materiCards}
+                </div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold mb-4 border-b-2 border-green-500 pb-2">Latihan & Try Out</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    ${latihanCards}
+                </div>
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = pageHTML;
+}
+
+function renderSnbtDetailPage(categoryId) {
+    const allCategories = [...allContentData.snbtTka.materi, ...allContentData.snbtTka.latihan];
+    const categoryData = allCategories.find(item => item.id === categoryId);
+    if (!categoryData) { appContent.innerHTML = `<p>Konten tidak ditemukan.</p>`; return; }
+    let accordionHTML = '';
+    if (Object.keys(categoryData.content).length === 0) {
+        accordionHTML = `<p class="p-4 text-gray-500">Materi untuk kategori ini belum tersedia.</p>`;
+    } else {
+        for (const subCategory in categoryData.content) {
+            const itemsHTML = categoryData.content[subCategory].map(item => `<li id="card-${item.id}" class="card-item-list block p-3 rounded-md hover:bg-gray-700 cursor-pointer" onclick="openMateri('${item.id}', '${item.filePath}')"><span class="font-semibold">${item.title}</span><span class="block text-xs text-gray-400">${item.type}</span></li>`).join('');
+            accordionHTML += `<div class="accordion-item border-b border-gray-700" data-accordion-group><h2><button type="button" class="accordion-button flex items-center justify-between w-full p-4 font-semibold text-left text-cyan-300"><span>${subCategory}</span><i class="accordion-icon fa-solid fa-chevron-down shrink-0 transition-transform duration-200"></i></button></h2><div class="accordion-content hidden p-2"><ul class="space-y-2">${itemsHTML}</ul></div></div>`;
+        }
+    }
+
+    const pageHTML = `
+        <div class="panel relative">
+            <button onclick="navigateTo('snbt_tka', document.querySelector('.sidebar-link[onclick*=\\'snbt_tka\\']'))"
+                    class="absolute top-4 right-4 md:top-6 md:right-6 h-10 w-10 flex items-center justify-center bg-gray-800/50 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-colors"
+                    aria-label="Kembali ke daftar kategori SNBT">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            <div class="mb-6 pr-12">
+                <h2 class="text-2xl font-bold text-cyan-400">${categoryData.title}</h2>
+                <p class="text-sm text-gray-400">${categoryData.summary}</p>
+            </div>
+            <div class="border border-gray-700 rounded-lg bg-gray-900/50">
+                ${accordionHTML}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = pageHTML;
+    setupAccordionListeners();
+}
+
+function renderInformasiPage() {
+    appContent.innerHTML = `
+        <div class="panel max-w-4xl mx-auto space-y-8">
+            <div>
+                <h2 class="text-2xl font-bold text-cyan-400">Pusat Informasi</h2>
+                <p class="text-sm text-gray-400 mt-1">Semua yang perlu Anda ketahui tentang UMT Pro, komunitas, dan pengembangan platform.</p>
+            </div>
+
+            <div class="bg-gray-900/50 p-5 rounded-lg border border-gray-700">
+                <h2 class="text-2xl font-bold text-cyan-400">Pembaruan Kebijakan Keamanan Akun Pro</h2>
+                <p class="text-sm text-gray-400 mt-1">Diterbitkan pada 7 Agustus 2025. Mohon dibaca dengan saksama.</p>
+                <h3 class="font-bold text-lg text-cyan-300 mb-3 mt-3">Halo UMT-ers Pro!</h3>
+                <p class="text-gray-300 text-sm leading-relaxed mb-5">
+                    Demi meningkatkan keamanan, kenyamanan, dan eksklusivitas akun Anda, kami memberlakukan sebuah kebijakan baru yang penting untuk diketahui: <strong>Sistem Perangkat Terdaftar (Device-Locking)</strong>.
+                </p>
+
+                <h3 class="font-bold text-lg text-green-300 mb-3">INFO PENTING – PERANGKAT TERDAFTAR</h3>
+                <p class="text-gray-300 text-sm leading-relaxed mb-4">
+                    Mulai hari ini, akun Pro Anda akan secara otomatis terhubung dengan perangkat yang pertama kali Anda gunakan untuk login. Berikut adalah rinciannya:
+                </p>
+                <ul class="text-sm text-gray-400 space-y-2 list-disc list-inside mb-4">
+                    <li><strong>Satu Akun, Satu Perangkat Aktif:</strong> Akun Anda kini hanya dapat diakses melalui satu perangkat yang sudah terdaftar tersebut (misalnya, hanya di HP atau hanya di laptop Anda).</li>
+                    <li><strong>Ingin Ganti Perangkat?:</strong> Tentu saja bisa! Jika Anda ingin beralih dari HP ke laptop atau sebaliknya, silakan hubungi Admin. Kami akan membantu Anda mengubah perangkat terdaftar. Perlu diingat, ini adalah proses <em>peralihan</em>, sehingga tetap hanya ada satu perangkat yang aktif dalam satu waktu.</li>
+                    <li><strong>Akses Multi-Perangkat:</strong> Jika Anda membutuhkan fleksibilitas untuk mengakses akun dari lebih dari satu perangkat secara bersamaan (contoh: di HP dan laptop sekaligus), kami menyediakan opsi peningkatan paket dengan biaya tambahan.</li>
+                </ul>
+                <p class="text-xs text-gray-500 mb-5">
+                    Kebijakan ini kami terapkan untuk mencegah penyalahgunaan akun dan memastikan bahwa layanan premium UMTacademy dapat Anda nikmati secara maksimal dan aman.
+                </p>
+
+                <a href="https://umt6174.site/Buat%20Akun/" target="_blank" class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                    <i class="fa-solid fa-user-plus mr-2"></i>Daftarkan Perangkat Baru
+                </a>
+            </div>
+            
+            <div>
+                <h3 class="font-bold text-lg text-amber-300 mb-3">Butuh Bantuan atau Ada Pertanyaan?</h3>
+                <p class="text-gray-300 text-sm leading-relaxed mb-4">
+                    Jangan ragu untuk bertanya jika ada hal yang kurang jelas mengenai kebijakan ini. Tim kami siap membantu Anda. Silakan klik tombol di bawah untuk langsung terhubung dengan Admin melalui WhatsApp.
+                </p>
+                <a href="https://wa.me/6285961160545" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-5 rounded-lg text-sm transition-transform hover:scale-105">
+                    <i class="fab fa-whatsapp mr-2"></i>Hubungi Admin
+                </a>
+            </div>
+
+            <div class="text-center pt-4 border-t border-gray-800">
+                <p class="text-sm text-gray-400">Terima kasih atas pengertian dan kerja sama Anda.</p>
+            </div>
+
+            <div class="text-center pt-4 border-t border-gray-800">
+                <p class="text-sm text-gray-400">Punya pertanyaan atau masukan? Hubungi kami melalui <a href="mailto:umt.math.6174@gmail.com" class="text-cyan-400 hover:underline">umt.math.6174@gmail.com</a>.</p>
+            </div>
+        </div>
+    `;
+}
+
+function openMateri(itemId, filePath) {
+    if (!filePath || filePath === '#') {
+        showToast('Konten untuk materi ini belum tersedia.', 'info');
+        return;
+    }
+
+    let materiItem = null;
+    for (const gradeKey in allContentData.materi) {
+        const foundItem = allContentData.materi[gradeKey].find(item => item.id === itemId);
+        if (foundItem) {
+            materiItem = foundItem;
+            break;
+        }
+    }
+
+    if (materiItem) {
+        updateLastActivity('materi', materiItem);
+        markAsCompleted(itemId);
+    }
+
+    window.location.href = filePath;
+}
+function setupMateriSearch() {
+    const searchInput = document.getElementById('materi-search-input');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const allMateriItems = document.querySelectorAll('.card-item-list');
+        const allAccordionGroups = document.querySelectorAll('[data-accordion-group]');
+
+        if (searchTerm === '') {
+            allMateriItems.forEach(item => {
+                item.style.display = 'block';
+            });
+            allAccordionGroups.forEach(group => {
+                group.style.display = 'block';
+                group.querySelector('.accordion-content').classList.add('hidden');
+                group.querySelector('.accordion-icon').classList.remove('rotate-180');
+            });
+            return;
+        }
+
+        allAccordionGroups.forEach(group => {
+            const itemsInGroup = group.querySelectorAll('.card-item-list');
+            let hasVisibleItemInGroup = false;
+
+            itemsInGroup.forEach(item => {
+                const title = item.querySelector('.font-semibold').textContent.toLowerCase();
+                if (title.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    hasVisibleItemInGroup = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (hasVisibleItemInGroup) {
+                group.style.display = 'block';
+                group.querySelector('.accordion-content').classList.remove('hidden');
+                group.querySelector('.accordion-icon').classList.add('rotate-180');
+            } else {
+                group.style.display = 'none';
+            }
+        });
+    });
+}
+function renderVideoPage() {
+    const categories = ['Semua', ...new Set(allContentData.video.map(item => item.category))];
+
+    const filterButtonsHTML = categories.map(category => `
+        <button class="filter-btn text-sm py-2 px-4 rounded-full bg-gray-700 hover:bg-cyan-600 transition-colors" data-filter="${category}">
+            ${category}
+        </button>
+    `).join('');
+
+    const videoHTML = allContentData.video.map(item => `
+        <div class="video-card card-item p-4 rounded-lg flex flex-col" data-category="${item.category}" onclick="playVideoInModal('${item.videoId}', '${item.title}')">
+            <img src="https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg" alt="${item.title}" class="rounded-md mb-3">
+            <h3 class="font-bold text-base mb-2 flex-grow">${item.title}</h3>
+            <div class="text-xs font-mono text-cyan-300 flex items-center gap-2">
+                <img src="UMT-Logo - Copy.png" alt="UMT Logo" class="w-4 h-4 rounded-full"> <span>Premium Video</span> </div>
+        </div>
+    `).join('');
+
+    appContent.innerHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-cyan-400">Video Pembelajaran</h2>
+            <p class="text-sm text-gray-400 mb-6">Pilih kategori atau tonton video pilihan untuk pemahaman lebih dalam.</p>
+            <div class="mb-8 flex flex-wrap gap-2" id="video-filter-container">
+                ${filterButtonsHTML}
+            </div>
+            <div id="video-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${videoHTML}
+            </div>
+        </div>
+    `;
+
+    setupVideoFilter();
+}
+function playVideoInModal(videoId, title) {
+    const videoItem = allContentData.video.find(v => v.videoId === videoId);
+    if (videoItem) {
+        markAsCompleted(videoItem.id, { showToast: true });
+        updateLastActivity('video', videoItem);
+    }
+
+    const videoPlayerHTML = `
+        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+            <iframe
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+    `;
+
+    showConfirmationModal({
+        title: title,
+        message: videoPlayerHTML,
+        confirmText: 'Tutup',
+        showCancelButton: false,
+        confirmButtonClass: 'modal-btn-confirm mt-4 w-full justify-center',
+    });
+}
+function setupVideoFilter() {
+    const filterContainer = document.getElementById('video-filter-container');
+    const videoCards = document.querySelectorAll('.video-card');
+    if (!filterContainer) return;
+
+    filterContainer.querySelector('[data-filter="Semua"]').classList.add('bg-cyan-600');
+
+    filterContainer.addEventListener('click', (e) => {
+        if (!e.target.matches('.filter-btn')) return;
+
+        const selectedFilter = e.target.dataset.filter;
+
+        document.querySelectorAll('#video-filter-container .filter-btn').forEach(btn => {
+            btn.classList.remove('bg-cyan-600');
+        });
+        e.target.classList.add('bg-cyan-600');
+
+        videoCards.forEach(card => {
+            if (selectedFilter === 'Semua' || card.dataset.category === selectedFilter) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
+function renderBankSoalPage() {
+    const categories = ['Semua', ...new Set(allContentData.bankSoal.map(quiz => quiz.category || 'Lainnya'))];
+
+    const dropdownItemsHTML = categories.map(category => `
+        <div class="dropdown-item" data-filter="${category}">${category}</div>
+    `).join('');
+
+    const dropdownFilterHTML = `
+        <div class="mb-8">
+            <label class="block text-sm font-medium text-gray-400 mb-2">Filter Kategori:</label>
+            <div class="dropdown-container" id="filter-dropdown">
+                <button class="dropdown-button" id="dropdown-button">
+                    <span id="dropdown-label">Semua</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu no-scrollbar" id="dropdown-menu">
+                    ${dropdownItemsHTML}
+                </div>
+            </div>
+        </div>
+    `;
+
+    const categoriesHTML = allContentData.bankSoal.reduce((acc, quiz) => {
+        const category = quiz.category || 'Lainnya';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(quiz);
+        return acc;
+    }, {});
+
+    let quizSectionsHTML = '';
+    for (const category in categoriesHTML) {
+        const quizzes = categoriesHTML[category];
+        const cardsHTML = quizzes.map(quiz => `
+            <div class="card-item p-6 rounded-lg flex flex-col flex-shrink-0 w-72 md:w-80" onclick="startQuiz('${quiz.id}')">
+                <h3 class="font-bold text-lg mb-2">${quiz.title}</h3>
+                <p class="text-sm text-gray-400 mb-4">${quiz.subject}</p>
+                <div class="mt-auto text-xs font-mono bg-gray-900/50 text-cyan-300 rounded-full px-3 py-1 self-start">
+                    ${quiz.totalQuestions} Soal
+                </div>
+            </div>
+        `).join('');
+
+        quizSectionsHTML += `
+            <div class="quiz-category-section mb-8" data-category="${category}">
+                <h3 class="text-xl font-bold mb-4 text-cyan-300">${category}</h3>
+                <div class="no-scrollbar flex overflow-x-auto gap-4 pb-4">
+                    ${cardsHTML}
+                </div>
+            </div>
+        `;
+    }
+
+    const bankSoalHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold mb-1 text-cyan-400">Bank Soal</h2>
+            <p class="text-sm text-gray-400 mb-6">Pilih paket soal untuk mulai berlatih.</p>
+            ${dropdownFilterHTML}
+            <div id="quiz-list-container">
+                ${quizSectionsHTML}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = bankSoalHTML;
+
+    setupBankSoalFilter();
+}
+function setupBankSoalFilter() {
+    const dropdownContainer = document.getElementById('filter-dropdown');
+    if (!dropdownContainer) return;
+
+    const button = document.getElementById('dropdown-button');
+    const menu = document.getElementById('dropdown-menu');
+    const label = document.getElementById('dropdown-label');
+    const items = menu.querySelectorAll('.dropdown-item');
+    const quizSections = document.querySelectorAll('.quiz-category-section');
+
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        menu.classList.toggle('open');
+        button.classList.toggle('open');
+    });
+
+    items.forEach(item => {
+        item.addEventListener('click', () => {
+            const selectedFilter = item.getAttribute('data-filter');
+            label.textContent = selectedFilter;
+            quizSections.forEach(section => {
+                if (selectedFilter === 'Semua' || section.dataset.category === selectedFilter) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            menu.classList.remove('open');
+            button.classList.remove('open');
+        });
+    });
+
+    window.addEventListener('click', (event) => {
+        if (!dropdownContainer.contains(event.target)) {
+            menu.classList.remove('open');
+            button.classList.remove('open');
+        }
+    });
+}
+function renderForumPage() {
+    appContent.innerHTML = `<div class="forum-container"><div class="intro"><h1>Forum Belajar UMT</h1><p>Bergabunglah dengan komunitas eksklusif UMT Academy! Tempat terbaik untuk berdiskusi, bertanya, berbagi ilmu, dan menguasai matematika bersama sesama pelajar dan fasilitator.</p></div><div class="community-links"><h2>Pilih Komunitas Pilihanmu Sekarang!</h2><div class="flex justify-center gap-4 flex-wrap"><a href="https://chat.whatsapp.com/GpyKRFFjMINBcjqGEYSXQ6" target="_blank" class="community-btn whatsapp-btn"><i class="fab fa-whatsapp"></i><span>Komunitas WhatsApp</span></a><a href="https://t.me/umt6174" target="_blank" class="community-btn telegram-btn"><i class="fab fa-telegram"></i><span>Komunitas Telegram</span></a></div><p class="subtext">Bergabunglah dengan ribuan pelajar lainnya!</p></div></div>`;
+}
+function renderPengaturanPage() {
+    appContent.innerHTML = `
+    <div class="panel max-w-2xl mx-auto">
+        <h2 class="text-2xl font-bold mb-1 text-cyan-400">Pengaturan</h2>
+        <p class="text-sm text-gray-400 mb-6">Kelola data aplikasi dan akun Anda di sini.</p>
+        <div class="space-y-4">
+            <div class="bg-gray-900/50 p-4 rounded-lg flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <h4 class="font-bold">Reset Progres Belajar</h4>
+                    <p class="text-xs text-gray-400 mt-1">Aksi ini akan menghapus semua progres dan lencana Anda.</p>
+                </div>
+                <button onclick="resetProgress()" class="bg-red-800 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded-lg flex-shrink-0">Reset Data</button>
+            </div>
+            <div class="bg-gray-900/50 p-4 rounded-lg flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <h4 class="font-bold">Akun</h4>
+                    <p class="text-xs text-gray-400 mt-1">Keluar dari akun Anda pada perangkat ini.</p>
+                </div>
+                <button onclick="logout()" class="w-full sm:w-auto bg-red-800 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded-lg flex-shrink-0">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>`;
+}
+function renderUmtLabPage() {
+    const analisisArticles = allContentData.umtLab.filter(p => p.category === 'Analisis & Kajian');
+    const eksplorasiArticles = allContentData.umtLab.filter(p => p.category === 'Eksplorasi Teori');
+
+    const createPostCard = (post) => `
+        <div class="card-item p-5 rounded-lg flex flex-col flex-shrink-0 w-72 md:w-80" onclick="window.location.href='viewer.html?id=${post.id}'">
+            <h3 class="font-bold text-lg text-cyan-400 mb-2">${post.title}</h3>
+            <p class="text-xs text-gray-500 mb-3">Oleh ${post.author} - ${post.date}</p>
+            <p class="text-sm text-gray-400">${post.summary}</p>
+        </div>
+    `;
+
+    const labPageHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-cyan-400">UMT Lab</h2>
+            <p class="text-sm text-gray-400 mb-8">Ruang untuk mendalami konsep dan analisis matematika tingkat lanjut.</p>
+
+            <div>
+                <h3 class="text-xl font-semibold mb-4 border-b-2 border-cyan-500 pb-2">Analisis & Kajian Matematika</h3>
+                <div class="no-scrollbar flex overflow-x-auto gap-4 pb-4">
+                    ${analisisArticles.length > 0 ? analisisArticles.map(createPostCard).join('') : '<p class="text-gray-500">Belum ada konten.</p>'}
+                </div>
+            </div>
+
+            <div class="mt-10">
+                <h3 class="text-xl font-semibold mb-4 border-b-2 border-cyan-500 pb-2">Eksplorasi Teori</h3>
+                <div class="no-scrollbar flex overflow-x-auto gap-4 pb-4">
+                    ${eksplorasiArticles.length > 0 ? eksplorasiArticles.map(createPostCard).join('') : '<p class="text-gray-500">Belum ada konten.</p>'}
+                </div>
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = labPageHTML;
+    if (window.MathJax) { MathJax.typeset(); }
+}
+function renderPerpustakaanPage() {
+    const libraryHTML = allContentData.perpustakaan.map(item => `
+        <div class="card-item p-5 rounded-lg flex flex-col" onclick="window.location.href='viewer.html?id=${item.id}'">
+            <h3 class="font-bold text-lg text-cyan-400 mb-2">${item.title}</h3>
+            <p class="text-xs text-gray-500 mb-3">Oleh ${item.author}</p>
+            <p class="text-sm text-gray-400 flex-grow">${item.summary}</p>
+            <div class="mt-4 text-xs font-mono bg-gray-900/50 text-cyan-300 rounded-full px-3 py-1 self-start">
+                E-Book
+            </div>
+        </div>
+    `).join('');
+
+    const pageHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-cyan-400">Perpustakaan Digital</h2>
+            <p class="text-sm text-gray-400 mb-8">Koleksi buku digital dan referensi untuk pendalaman materi.</p>
+            <div id="library-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                ${libraryHTML.length > 0 ? libraryHTML : '<p class="text-gray-500 col-span-full">Belum ada buku di perpustakaan.</p>'}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = pageHTML;
+}
+
+function renderKamusPage() {
+    // 1. Buat HTML untuk Kamus
+    // Kita gunakan kelas 'panel' dari SPA, bukan 'container' dari kamus
+    // Kita juga memberi ID unik (namespaced) untuk modal
+    appContent.innerHTML = `
+        <div class="panel">
+            <h1 class="text-2xl font-bold text-cyan-400 mb-6 text-center">
+                <i class="fa-solid fa-spell-check"></i> Kamus Matematika UMT
+            </h1>
+            
+            <input type="search" id="kamus-search" placeholder="🔍 Cari istilah... (misal: limit, pangkat, gradien)">
+            
+            <div class="filter-group">
+                <label for="kamus-filter">Pilih Topik:</label>
+                <select id="kamus-filter">
+                    <option value="all" selected>Semua Topik</option>
+                    <option value="aljabar">Aljabar</option>
+                    <option value="kalkulus">Kalkulus</option>
+                    <option value="geometri">Geometri</option>
+                </select>
+            </div>
+
+            <h2 class="text-xl font-semibold mb-4 text-cyan-300">
+                <i class="fas fa-list-ul"></i> Daftar Istilah
+            </h2>
+            <div id="kamus-results-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+        </div>
+
+        <div id="kamus-term-modal" class="kamus-modal-overlay">
+            <div class="kamus-modal-content">
+                <button id="kamus-modal-close-btn" class="kamus-modal-close-btn" aria-label="Tutup">&times;</button>
+                
+                <h2 id="kamus-modal-title"></h2>
+                <p id="kamus-modal-intuition"></p>
+                
+                <h3><i class="fas fa-brain"></i> Penjelasan Lanjut (UMT)</h3>
+                <p id="kamus-modal-penjelasan"></p>
+                
+                <h3><i class="fas fa-book-open"></i> Definisi Formal</h3>
+                <div id="kamus-modal-formal"></div>
+
+                <div class="kamus-knowledge-network">
+                    <h4>Prasyarat (Pahami Ini Dulu):</h4>
+                    <div id="kamus-modal-prasyarat"></div>
+                    
+                    <h4 style="margin-top: 1rem;">Konsep Terkait (Jelajahi Selanjutnya):</h4>
+                    <div id="kamus-modal-terkait"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 2. Jalankan JavaScript khusus untuk halaman kamus
+    initializeKamusPageLogic();
+}
+
+function initializeKamusPageLogic() {
+    // --- Variabel dan Elemen DOM (Namespaced) ---
+    // Semua selector BUKAN lagi variabel global, tapi lokal di dalam fungsi ini
+    const searchInput = document.getElementById('kamus-search');
+    const filterSelect = document.getElementById('kamus-filter');
+    const resultsList = document.getElementById('kamus-results-list');
+    const modal = document.getElementById('kamus-term-modal'); // ID unik
+    const modalTitle = document.getElementById('kamus-modal-title');
+    const modalIntuition = document.getElementById('kamus-modal-intuition');
+    const modalPenjelasan = document.getElementById('kamus-modal-penjelasan');
+    const modalFormal = document.getElementById('kamus-modal-formal');
+    const modalPrasyarat = document.getElementById('kamus-modal-prasyarat');
+    const modalTerkait = document.getElementById('kamus-modal-terkait');
+    const modalCloseBtn = document.getElementById('kamus-modal-close-btn'); // ID unik
+
+    // Pastikan elemen ada sebelum menambah listener
+    if (!searchInput) {
+        console.error("Kamus JS: Elemen tidak ditemukan. Berhenti.");
+        return;
+    }
+
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    // --- Fungsi Internal Kamus ---
+
+    function renderTerms() {
+        resultsList.innerHTML = '';
+        const searchTerm = currentSearch.toLowerCase();
+        
+        for (const key in kamusData) {
+            const termData = kamusData[key];
+            const categoryMatch = currentFilter === 'all' || termData.category === currentFilter;
+            const searchMatch = termData.term.toLowerCase().includes(searchTerm) || termData.intuition.toLowerCase().includes(searchTerm);
+            
+            if (categoryMatch && searchMatch) {
+                const item = document.createElement('div');
+                item.className = 'result-item'; // Class ini dari CSS yg kita tambahkan
+                item.setAttribute('data-id', key);
+                item.innerHTML = `
+                    <h3>${termData.term}</h3>
+                    <p>${termData.intuition}</p>
+                `;
+                // 'showKamusTermDetail' BUKAN fungsi global, tapi didefinisikan di bawah
+                item.addEventListener('click', () => showKamusTermDetail(key));
+                resultsList.appendChild(item);
+            }
+        }
+    }
+
+    function openKamusModal() { // Nama fungsi di-namespaced
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        document.body.classList.add('kamus-modal-open'); // Class CSS unik
+        modal.classList.add('active'); // Class CSS unik
+    }
+
+    function closeKamusModal() { // Nama fungsi di-namespaced
+        document.body.classList.remove('kamus-modal-open');
+        document.body.style.paddingRight = '';
+        modal.classList.remove('active');
+    }
+
+    function showKamusTermDetail(termId) {
+        const data = kamusData[termId];
+        if (!data) return;
+
+        const isModalAlreadyOpen = modal.classList.contains('active');
+
+        modalTitle.textContent = data.term;
+        modalIntuition.textContent = `"${data.intuition}"`;
+        modalPenjelasan.textContent = data.penjelasan;
+        modalFormal.innerHTML = `<p>${data.formal}</p>`;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([modalPenjelasan, modalFormal]).catch(err => console.log(err));
+        }
+
+        modalPrasyarat.innerHTML = '';
+        if (data.prerequisites.length > 0) {
+            data.prerequisites.forEach(key => {
+                const term = kamusData[key];
+                if (term) {
+                    // Gunakan class .kamus-nav-link
+                    const link = document.createElement('span');
+                    link.className = 'kamus-nav-link';
+                    link.textContent = term.term;
+                    link.onclick = () => showKamusTermDetail(key); // Panggil fungsi ini lagi
+                    modalPrasyarat.appendChild(link);
+                }
+            });
+        } else {
+            modalPrasyarat.innerHTML = `<span style="color: var(--text-secondary); font-size: 0.9rem;">Tidak ada prasyarat dasar.</span>`;
+        }
+
+        modalTerkait.innerHTML = '';
+        data.related.forEach(key => {
+            const term = kamusData[key];
+            if (term) {
+                const link = document.createElement('span');
+                link.className = 'kamus-nav-link';
+                link.textContent = term.term;
+                link.onclick = () => showKamusTermDetail(key); // Panggil fungsi ini lagi
+                modalTerkait.appendChild(link);
+            }
+        });
+
+        if (!isModalAlreadyOpen) {
+            openKamusModal();
+        }
+    }
+
+    // --- Event Listeners ---
+    searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        renderTerms();
+    });
+
+    filterSelect.addEventListener('change', (e) => {
+        currentFilter = e.target.value;
+        renderTerms();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeKamusModal();
+        }
+    });
+    
+    modalCloseBtn.addEventListener('click', () => {
+        closeKamusModal();
+    });
+
+    // --- Render Awal ---
+    renderTerms();
+}
+
+function getTotalItemCount() {
+    const totalMateri = Object.values(allContentData.materi).flat().length;
+    const totalVideo = allContentData.video.length;
+    const totalBankSoal = allContentData.bankSoal.length;
+    const totalUmtLab = allContentData.umtLab.length;
+    const totalPerpustakaan = allContentData.perpustakaan.length;
+    const totalSprintMateri = allContentData.sprintMateri.flatMap(sprint => Object.values(sprint.content).flat()).length;
+    return totalMateri + totalVideo + totalBankSoal + totalUmtLab + totalPerpustakaan + totalSprintMateri;
+}
+function initializeAppDashboardWidgets() {
+    const email = sessionStorage.getItem(CONFIG.SESSION_KEYS.EMAIL) || 'pengguna@email.com';
+    const namePart = email.split('@')[0];
+    document.getElementById('user-greeting').innerHTML = `Halo, ${namePart.charAt(0).toUpperCase() + namePart.slice(1)} 👋`;
+
+    const completedItems = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.COMPLETED_ITEMS)) || [];
+    const totalItems = getTotalItemCount();
+    const progress = totalItems > 0 ? Math.round((completedItems.length / totalItems) * 100) : 0;
+
+    document.getElementById('status-container').innerHTML = `<div><span class="text-sm">📚 Progress Keseluruhan (${completedItems.length}/${totalItems})</span><div class="w-full bg-gray-700 rounded-full h-2.5 mt-1"><div class="bg-cyan-500 h-2.5 rounded-full transition-all duration-500" style="width: ${progress}%"></div></div></div>`;
+
+    let lencanaHTML = '';
+    if (completedItems.length >= 1) lencanaHTML += `<div title="Langkah Pertama"><i class="fa-solid fa-shoe-prints text-cyan-400 text-2xl"></i></div>`;
+    if (progress >= 50) lencanaHTML += `<div title="Setengah Jalan!"><i class="fa-solid fa-road-circle-check text-green-400 text-2xl"></i></div>`;
+    if (progress === 100) lencanaHTML += `<div title="100% Selesai!"><i class="fa-solid fa-trophy text-amber-400 text-2xl"></i></div>`;
+    document.getElementById('lencana-container').innerHTML = lencanaHTML || `<p class="text-sm text-gray-500">Selesaikan materi untuk dapat lencana!</p>`;
+
+    document.getElementById('social-media-container').innerHTML = socialMediaUpdates.map(item => `
+        <a href="${item.link}" target="_blank" class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-800">
+            ${item.icon.endsWith('.png') ? `<img src="${item.icon}" class="w-6 h-6">` : `<i class="${item.icon} ${item.color} text-xl w-6 text-center"></i>`}
+            <span class="text-sm text-gray-300">${item.text}</span>
+        </a>
+    `).join('');
+
+    const lastScoreContainer = document.getElementById('last-score-widget-container');
+    const lastScoreData = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_SCORE));
+    if (lastScoreData) {
+        lastScoreContainer.innerHTML = `
+            <div class="panel">
+                <h4 class="font-bold text-lg mb-4">Skor Kuis Terakhir</h4>
+                <div class="text-center">
+                    <p class="text-sm text-gray-400">${lastScoreData.title}</p>
+                    <p class="text-4xl font-bold text-cyan-400 mt-2">${lastScoreData.percentage}%</p>
+                    <p class="text-gray-300 mt-1 text-xs">(${lastScoreData.score} dari ${lastScoreData.total} soal benar)</p>
+                </div>
+            </div>`;
+    }
+    const lastActivityContainer = document.getElementById('last-activity-container');
+    const lastActivity = JSON.parse(localStorage.getItem('userLastActivity')) || {};
+    let activityHTML = '';
+
+    const createWidget = (config) => {
+        if (!config.data) return '';
+
+        let href = config.data.filePath || '#';
+        let actionOnClick = `onclick="event.preventDefault(); openMateri('${config.data.id}', '${href}')"`;
+
+        if (config.type === 'video') {
+            actionOnClick = `onclick="event.preventDefault(); playVideoInModal('${config.data.videoId}', '${config.data.title.replace(/'/g, "\\'")}')"`;
+        } else if (config.type === 'umtLab' || config.type === 'perpustakaan') {
+            href = `viewer.html?id=${config.data.id}`;
+            actionOnClick = `onclick="window.location.href='${href}'"`;
+        }
+
+        return `
+            <div class="panel">
+                <h4 class="font-bold text-lg mb-3">${config.title}</h4>
+                <div class="flex items-center gap-4 p-3 rounded-lg bg-gray-900/50">
+                    <i class="${config.icon} text-cyan-400 text-2xl w-8 text-center"></i>
+                    <div class="flex-grow">
+                        <p class="text-sm font-semibold">${config.data.title}</p>
+                        <a href="${href}" ${actionOnClick} class="text-xs text-cyan-400 hover:underline cursor-pointer">
+                            ${config.actionText}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    };
+
+    activityHTML += createWidget({ title: "Materi Terakhir Dibaca", icon: "fa-solid fa-book-open", actionText: "Lanjutkan Membaca", data: lastActivity.materi, type: 'materi' });
+    activityHTML += createWidget({ title: "Video Terakhir Ditonton", icon: "fa-solid fa-circle-play", actionText: "Tonton Lagi", data: lastActivity.video, type: 'video' });
+    activityHTML += createWidget({ title: "Lab Terakhir Dibaca", icon: "fa-solid fa-flask-vial", actionText: "Lanjutkan Membaca", data: lastActivity.umtLab, type: 'umtLab'});
+    activityHTML += createWidget({ title: "Buku Terakhir Dibuka", icon: "fa-solid fa-book-atlas", actionText: "Lanjutkan Membaca", data: lastActivity.perpustakaan, type: 'perpustakaan' });
+    lastActivityContainer.innerHTML = activityHTML;
+}
+function resetProgress() {
+    showConfirmationModal({
+        title: 'Konfirmasi Reset Progres',
+        message: 'Apakah Anda yakin ingin mereset semua progres belajar Anda? Aksi ini tidak dapat dibatalkan.',
+        confirmText: 'Ya, Reset',
+        confirmButtonClass: 'modal-btn-danger',
+        confirmAction: () => {
+            localStorage.removeItem(CONFIG.STORAGE_KEYS.COMPLETED_ITEMS);
+            localStorage.removeItem(CONFIG.STORAGE_KEYS.LAST_SCORE);
+            localStorage.removeItem('userLastActivity');
+            showToast("Progres belajar berhasil direset.", "success");
+            navigateTo('dashboard', null);
+        },
+        cancelAction: () => showToast("Aksi reset dibatalkan.", "info")
+    });
+}
+function markAsCompleted(itemId, options = { showToast: false }) {
+    let completed = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.COMPLETED_ITEMS)) || [];
+    if (!completed.includes(itemId)) {
+        completed.push(itemId);
+        localStorage.setItem(CONFIG.STORAGE_KEYS.COMPLETED_ITEMS, JSON.stringify(completed));
+        if (options.showToast) {
+            showToast("Progres telah dicatat!", "success");
+        }
+    }
+}
+function updateLastActivity(type, item) {
+    const key = 'userLastActivity';
+    let lastActivity = JSON.parse(localStorage.getItem(key)) || {};
+
+    let dataToStore = {
+        id: item.id,
+        title: item.title,
+        filePath: item.filePath
+    };
+
+    if (type === 'video') {
+        dataToStore.videoId = item.videoId;
+    }
+
+    lastActivity[type] = dataToStore;
+    localStorage.setItem(key, JSON.stringify(lastActivity));
+}
+function startQuiz(quizId) {
+    currentQuizData = allContentData.bankSoal.find(q => q.id === quizId);
+    if (!currentQuizData) { showToast('Kuis tidak ditemukan!', 'error'); return; }
+    currentQuestionIndex = 0;
+    userAnswers = new Array(currentQuizData.questions.length).fill(null);
+    renderQuizInterface();
+}
+function renderQuizInterface() {
+    const quiz = currentQuizData;
+    const question = quiz.questions[currentQuestionIndex];
+
+    const questionNavHTML = quiz.questions.map((_, index) => {
+        let classes = 'quiz-nav-item';
+        if (index === currentQuestionIndex) {
+            classes += ' current';
+        } else if (userAnswers[index] !== null) {
+            classes += ' answered';
+        }
+        return `<div class="${classes}" onclick="jumpToQuestion(${index})">${index + 1}</div>`;
+    }).join('');
+
+    const optionsHTML = question.options.map((opt, index) =>
+        `<div id="option-${index}" class="quiz-option p-4 rounded-lg cursor-pointer transition-colors" onclick="selectAnswer(${index}, this)">
+            ${opt}
+        </div>`
+    ).join('');
+
+    const whatsappMessage = `Halo Mentor UMT, saya ingin bertanya mengenai soal dari paket '${encodeURIComponent(quiz.title)}'.\n\nPertanyaan: ${encodeURIComponent(question.questionText)}\n\n Mohon bantuannya untuk penjelasan lebih lanjut.`;
+    const whatsappLink = `https://wa.me/6285961160545?text=${whatsappMessage}`;
+
+    const quizHTML = `
+        <div class="panel max-w-4xl mx-auto">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-cyan-400">${quiz.title}</h2>
+                    <p class="text-sm text-gray-400">Soal ${currentQuestionIndex + 1} dari ${quiz.questions.length}</p>
+                </div>
+                <button onclick="navigateTo('bank_soal', document.querySelector('.sidebar-link[onclick*=\\'bank_soal\\']'))" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="quiz-nav-container no-scrollbar">${questionNavHTML}</div>
+
+            <div class="mb-6 min-h-[60px] text-lg text-gray-200">${question.questionText}</div>
+            <div id="quiz-options" class="space-y-3">${optionsHTML}</div>
+
+            <div id="explanation-container" class="hidden mt-6">
+                <hr class="border-gray-700 my-5"/>
+                <div>
+                    <h4 class="font-bold text-lg text-cyan-300 mb-2">Pembahasan:</h4>
+                    <div class="text-gray-300 leading-relaxed">
+                        <div class="explanation-container-vertical">
+                            <div class="explanation-content-inner">${question.explanation}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-5 border-t border-dashed border-gray-600">
+                    <h4 class="font-bold text-lg text-amber-300 mb-2">Pembahasan Kurang Jelas?</h4>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                        Jika Anda yakin pembahasannya keliru atau kurang tepat, beri tahu mentor lewat WhatsApp. Fitur ini dibuat khusus untuk koreksi — Mohon dipakai hanya untuk perbaikan pembahasan, bukan pertanyaan umum. Klik tombol di bawah untuk terhubung langsung via WhatsApp.
+                    </p>
+                    <a href="${whatsappLink}" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-5 rounded-lg text-sm transition-transform hover:scale-105">
+                        <i class="fab fa-whatsapp mr-2"></i>Hubungi Mentor
+                    </a>
+                </div>
+            </div>
+
+            <hr class="border-gray-700 my-6"/>
+            <div class="flex justify-between items-center">
+                <button id="prev-btn" onclick="previousQuestion()" class="nav-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Sebelumnya</button>
+                ${currentQuestionIndex === quiz.questions.length - 1 ? 
+                    `<button onclick="renderQuizResults()" class="nav-btn bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded-lg">Lihat Hasil</button>` :
+                    `<button id="next-btn" onclick="nextQuestion()" class="nav-btn bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">Selanjutnya</button>`
+                }
+            </div>
+        </div>
+    `;
+
+    appContent.innerHTML = quizHTML;
+    if (window.MathJax) { MathJax.typeset(); }
+
+    if (userAnswers[currentQuestionIndex] !== null) {
+        showAnswerAndExplanation(true);
+    }
+
+    document.getElementById('prev-btn').disabled = (currentQuestionIndex === 0);
+    
+    const activeNavItem = document.querySelector('.quiz-nav-item.current');
+    if (activeNavItem) {
+        activeNavItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+}
+function showAnswerAndExplanation(isRestoringState = false) {
+    const quiz = currentQuizData;
+    const question = quiz.questions[currentQuestionIndex];
+    const selectedAnswer = userAnswers[currentQuestionIndex];
+
+    const optionsContainer = document.getElementById('quiz-options');
+    const allOptions = optionsContainer.children;
+    const correctIndex = question.options.indexOf(question.correctAnswer);
+
+    optionsContainer.classList.add('pointer-events-none');
+
+    for (let i = 0; i < allOptions.length; i++) {
+        const optionEl = allOptions[i];
+        const optionText = question.options[i];
+
+        if (i === correctIndex) {
+            optionEl.classList.remove('quiz-option');
+            optionEl.classList.add('correct-answer');
+        }
+
+        if (!isRestoringState && i === userAnswers[currentQuestionIndex] && i !== correctIndex) {
+            optionEl.classList.remove('quiz-option');
+            optionEl.classList.add('wrong-answer');
+        }
+    }
+
+    document.getElementById('explanation-container').classList.remove('hidden');
+
+    if (window.MathJax) {
+        const explanationText = document.querySelector('.explanation-content-inner');
+        MathJax.typesetPromise([explanationText]).catch(err => console.log('MathJax error:', err));
+    }
+}
+
+function selectAnswer(optionIndex, element) {
+    if (userAnswers[currentQuestionIndex] !== null) return;
+    userAnswers[currentQuestionIndex] = optionIndex;
+
+    const navItem = document.querySelector(`.quiz-nav-item:nth-child(${currentQuestionIndex + 1})`);
+    if (navItem) {
+        navItem.classList.add('answered');
+    }
+
+    showAnswerAndExplanation();
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < currentQuizData.questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuizInterface();
+    }
+}
+function previousQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuizInterface();
+    }
+}
+function jumpToQuestion(index) {
+    currentQuestionIndex = index;
+    renderQuizInterface();
+
+    const activeNavItem = document.querySelector(`.quiz-nav-item.current`);
+    if (activeNavItem) {
+        activeNavItem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+}
+function submitQuiz() {
+    if (userAnswers[currentQuestionIndex] === null) { showToast('Silakan pilih jawaban terlebih dahulu!', 'error'); return; }
+    if (currentQuestionIndex < currentQuizData.questions.length - 1) { currentQuestionIndex++; renderQuizInterface(); } else { renderQuizResults(); }
+}
+
+function renderQuizResults() {
+    const quiz = currentQuizData;
+    let score = 0;
+    quiz.questions.forEach((q, index) => {
+        const correctIndex = q.options.indexOf(q.correctAnswer);
+        if (userAnswers[index] === correctIndex) { score++; }
+    });
+
+    markAsCompleted(quiz.id);
+
+    const finalScorePercentage = quiz.questions.length > 0 ? Math.round((score / quiz.questions.length) * 100) : 0;
+    localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_SCORE, JSON.stringify({
+        title: quiz.title,
+        score: score,
+        total: quiz.questions.length,
+        percentage: finalScorePercentage
+    }));
+
+    appContent.innerHTML = `
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-center mb-2 text-white">${quiz.title}</h2>
+        <p class="text-center text-sm text-gray-400 mb-6">Berikut adalah pembahasan dari latihan yang kamu kerjakan.</p>
+        <div class="text-center my-6 bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+            <p class="text-gray-400">Skor Akhir Anda</p>
+            <p class="text-5xl font-bold text-cyan-400 mt-2">${finalScorePercentage}%</p>
+            <p class="text-gray-300 mt-2">(${score} dari ${quiz.questions.length} soal benar)</p>
+        </div>
+        <div id="single-explanation-container" class="space-y-4"></div>
+        <div class="flex justify-between items-center mt-8 quiz-nav-buttons">
+            <button id="prev-explanation-btn" onclick="prevExplanation()" class="nav-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+            </button>
+            <button onclick="navigateTo('bank_soal', null)" class="bg-cyan-800 hover:bg-cyan-700 text-white text-sm py-2 px-4 rounded-lg">
+                Kembali ke Bank Soal
+            </button>
+            <button id="next-explanation-btn" onclick="nextExplanation()" class="nav-btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>`;
+
+    currentExplanationIndex = 0;
+    renderSingleExplanation(currentExplanationIndex);
+}
+
+function renderSingleExplanation(index) {
+    const container = document.getElementById('single-explanation-container');
+    const quiz = currentQuizData;
+    const q = quiz.questions[index];
+
+    const correctIndex = q.options.indexOf(q.correctAnswer);
+    const userAnswerText = userAnswers[index] !== null ? q.options[userAnswers[index]] : null;
+
+    const whatsappMessage = `Halo Mentor UMT, saya ingin bertanya mengenai soal dari paket '${encodeURIComponent(quiz.title)}'.\n\nPertanyaan: ${encodeURIComponent(q.questionText)}\n\nMohon bantuannya untuk penjelasan lebih lanjut.`;
+    const whatsappLink = `https://wa.me/6285961160545?text=${whatsappMessage}`;
+
+    container.innerHTML = `
+    <div class="panel">
+        <p class="text-sm text-gray-400 mb-4">Pertanyaan ${index + 1} dari ${quiz.questions.length}</p>
+        <div class="mb-5 text-gray-200 text-lg">${q.questionText}</div>
+        <div class="space-y-3 text-base">
+            <p class="${userAnswers[index] === correctIndex ? 'correct-answer' : 'wrong-answer'} p-3 rounded-lg">
+                <span class="font-bold block">Jawaban Anda:</span>
+                ${userAnswerText || 'Tidak dijawab'}
+            </p>
+            <p class="correct-answer p-3 rounded-lg">
+                <span class="font-bold block">Jawaban Benar:</span>
+                ${q.correctAnswer}
+            </p>
+        </div>
+        <hr class="border-gray-700 my-5"/>
+        <div>
+            <h4 class="font-bold text-lg text-cyan-300 mb-2">Pembahasan:</h4>
+            <div class="text-gray-300 leading-relaxed">
+                <div class="explanation-container-vertical">
+                    <div class="explanation-content-inner">${q.explanation}</div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-6 pt-5 border-t border-dashed border-gray-600">
+            <h4 class="font-bold text-lg text-amber-300 mb-2">Pembahasan Kurang Jelas?</h4>
+            <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                Merasa ada yang salah atau butuh penjelasan lebih detail dari mentor kami? Jangan ragu untuk bertanya! Klik tombol di bawah untuk terhubung langsung dengan Mentor UMT via WhatsApp.
+            </p>
+            <a href="${whatsappLink}" target="_blank" class="inline-block bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-5 rounded-lg text-sm transition-transform hover:scale-105">
+                <i class="fab fa-whatsapp mr-2"></i>Hubungi Mentor
+            </a>
+        </div>
+    </div>`;
+
+    document.getElementById('prev-explanation-btn').disabled = (index === 0);
+    document.getElementById('next-explanation-btn').disabled = (index === quiz.questions.length - 1);
+
+    if (window.MathJax) {
+        MathJax.typesetPromise([container]).catch(err => console.log('MathJax error: ', err.message));
+    }
+}
+
+function nextExplanation() { if (currentExplanationIndex < currentQuizData.questions.length - 1) { currentExplanationIndex++; renderSingleExplanation(currentExplanationIndex); } }
+function prevExplanation() { if (currentExplanationIndex > 0) { currentExplanationIndex--; renderSingleExplanation(currentExplanationIndex); } }
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    const icons = { info: 'fa-solid fa-circle-info', success: 'fa-solid fa-check-circle', error: 'fa-solid fa-triangle-exclamation' };
+    const colors = { info: 'text-cyan-400', success: 'text-green-400', error: 'text-red-400' };
+    toast.className = 'toast-in flex items-start p-4 rounded-lg shadow-lg text-sm';
+    toast.style.backgroundColor = 'var(--bg-panel)';
+    toast.style.border = '1px solid var(--border-color)';
+    toast.innerHTML = `<div class="flex-shrink-0"><i class="${icons[type] || icons['info']} ${colors[type] || colors['info']} text-xl"></i></div><div class="ml-3"><p class="font-bold capitalize ${colors[type] || colors['info']}">${type}</p><p class="text-gray-300 mt-1">${message}</p></div>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.remove('toast-in');
+        toast.classList.add('toast-out');
+        toast.addEventListener('animationend', () => toast.remove());
+    }, 5000);
+}
+function showConfirmationModal(options) {
+    const {
+        title,
+        message,
+        confirmText = 'Konfirmasi',
+        cancelText = 'Batal',
+        confirmAction,
+        cancelAction,
+        showCancelButton = true,
+        confirmButtonClass = 'modal-btn-confirm',
+        customModalClass = ''
+    } = options;
+
+    const modalContainer = document.getElementById('modal-container');
+
+    const modalHTML = `
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal-box ${customModalClass}">
+                <h3 class="modal-title">${title}</h3>
+                <div class="modal-content">${message}</div>
+                <div class="modal-buttons">
+                    ${showCancelButton ? `<button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">${cancelText}</button>` : ''}
+                    <button id="modal-confirm-btn" class="modal-btn ${confirmButtonClass}">${confirmText}</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modalContainer.innerHTML = modalHTML;
+    modalContainer.style.display = 'block';
+
+    const closeModal = () => {
+        modalContainer.style.display = 'none';
+        modalContainer.innerHTML = '';
+    };
+
+    document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+        if (typeof confirmAction === 'function') confirmAction();
+        closeModal();
+    });
+
+    if (showCancelButton) {
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        cancelBtn.addEventListener('click', () => {
+            if (typeof cancelAction === 'function') cancelAction();
+            closeModal();
+        });
+        document.getElementById('modal-overlay').addEventListener('click', (event) => {
+            if (event.target === event.currentTarget) {
+                if (typeof cancelAction === 'function') cancelAction();
+                closeModal();
+            }
+        });
+    }
+}
+function initializeApp() {
+    const token = sessionStorage.getItem(CONFIG.SESSION_KEYS.TOKEN);
+    const email = sessionStorage.getItem(CONFIG.SESSION_KEYS.EMAIL);
+
+    if (!token || !email) {
+        window.location.href = CONFIG.LOGIN_PAGE;
+        return;
+    }
+
+    startSessionHeartbeat(token, email);
+
+    const lastActivePage = sessionStorage.getItem('lastActivePage');
+
+    if (lastActivePage) {
+        const targetLink = document.querySelector(`.sidebar-link[onclick*="'${lastActivePage}'"]`);
+        navigateTo(lastActivePage, targetLink);
+    } else {
+        navigateTo('dashboard', document.querySelector('.sidebar-link'));
+    }
+
+    if (!sessionStorage.getItem(CONFIG.STORAGE_KEYS.WELCOME_POPUP)) {
+        showConfirmationModal({
+            title: '🎉 Selamat Datang di UMT Pro!',
+            message: 'Mohon maaf, halaman untuk Member Pro saat ini masih dalam tahap pengembangan aktif. Jadi, hanya terdapat beberapa halaman yang terisi lengkap yang dapat anda jelajahi dan sebagian masih dalam tahap pengembangan. Dan diharap sebelum menjelajahi lebih jauh disarankan anda mengunjungi halaman informasi terlebih dahulu ya, Terima kasih atas pengertiannya!',
+            confirmText: 'Mengerti',
+            showCancelButton: false,
+            confirmAction: () => sessionStorage.setItem(CONFIG.STORAGE_KEYS.WELCOME_POPUP, 'true')
+        });
+    }
+}
+function setupMobileNavScroll() {
+    const nav = document.getElementById('sidebar-nav');
+    const btnLeft = document.getElementById('nav-scroll-left');
+    const btnRight = document.getElementById('nav-scroll-right');
+
+    if (!nav || !btnLeft || !btnRight) return;
+
+    // Fungsi untuk update visibilitas tombol
+    const updateButtons = () => {
+        // Toleransi 1px untuk perhitungan desimal
+        const isAtStart = nav.scrollLeft <= 1; 
+        const isAtEnd = Math.abs(nav.scrollWidth - nav.clientWidth - nav.scrollLeft) <= 1;
+
+        if (isAtStart) {
+            btnLeft.classList.remove('nav-scroll-btn-active');
+        } else {
+            btnLeft.classList.add('nav-scroll-btn-active');
+        }
+
+        if (isAtEnd) {
+            btnRight.classList.remove('nav-scroll-btn-active');
+        } else {
+            btnRight.classList.add('nav-scroll-btn-active');
+        }
+    };
+
+    // Event Listener Scroll
+    nav.addEventListener('scroll', updateButtons);
+    
+    // Panggil sekali saat load
+    updateButtons();
+    window.addEventListener('resize', updateButtons);
+
+    // Fungsi Klik Tombol (Geser 1 Item)
+    const scrollAmount = () => window.innerWidth * 0.25; // 25vw (sesuai lebar item)
+
+    btnLeft.addEventListener('click', () => {
+        nav.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    });
+
+    btnRight.addEventListener('click', () => {
+        nav.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();       // Menjalankan aplikasi utama
+    setupMobileNavScroll(); // <--- INI PENTING: Menjalankan logika panah navigasi
+});
+
+// Fungsi-fungsi baru untuk Sprint Materi
+function openSprintCategory(sprintId) {
+    currentSprintViewId = sprintId;
+    renderSprintMateriPage();
+}
+
+function renderSprintMateriPage() {
+    if (!currentSprintViewId) {
+        renderSprintMainPage();
+    } else {
+        renderSprintDetailPage(currentSprintViewId);
+    }
+}
+
+function renderSprintMainPage() {
+    const sprintCards = allContentData.sprintMateri.map(item => `
+        <div class="card-item p-5 rounded-lg flex flex-col" onclick="openSprintCategory('${item.id}')">
+            <div class="flex items-center gap-4 mb-3">
+                <i class="${item.icon} text-purple-400 text-2xl w-8 text-center"></i>
+                <h3 class="font-bold text-lg text-purple-300">${item.title}</h3>
+            </div>
+            <p class="text-sm text-gray-400 flex-grow">${item.summary}</p>
+            <div class="mt-4 text-xs font-mono bg-gray-900/50 text-purple-300 rounded-full px-3 py-1 self-start">
+                Latihan Terstruktur
+            </div>
+        </div>
+    `).join('');
+
+    const pageHTML = `
+        <div class="panel">
+            <h2 class="text-2xl font-bold text-purple-400">Sprint Materi</h2>
+            <p class="text-sm text-gray-400 mb-8">Pilih sprint materi yang ingin kamu kuasai dengan latihan terstruktur.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                ${sprintCards}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = pageHTML;
+}
+
+function renderSprintDetailPage(sprintId) {
+    const sprintData = allContentData.sprintMateri.find(item => item.id === sprintId);
+    if (!sprintData) { appContent.innerHTML = `<p>Konten sprint tidak ditemukan.</p>`; return; }
+
+    let accordionHTML = '';
+    if (Object.keys(sprintData.content).length === 0) {
+        accordionHTML = `<p class="p-4 text-gray-500">Latihan untuk sprint ini belum tersedia.</p>`;
+    } else {
+        for (const subCategory in sprintData.content) {
+            const itemsHTML = sprintData.content[subCategory].map(item => `
+                <li id="card-${item.id}" class="card-item-list block p-3 rounded-md hover:bg-gray-700 cursor-pointer" onclick="openSprintLatihan('${item.id}', '${item.filePath}')">
+                    <span class="font-semibold">${item.title}</span>
+                    <span class="block text-xs text-gray-400">${item.type}</span>
+                </li>
+            `).join('');
+            
+            // --- PERUBAHAN DI SINI ---
+            accordionHTML += `
+                <div class="accordion-item border-b border-gray-700" data-accordion-group>
+                    <h2>
+                        <button type="button" class="accordion-button flex items-center justify-between w-full p-4 font-semibold text-left text-purple-300">
+                            <span>${subCategory}</span>
+                            <i class="accordion-icon fa-solid fa-chevron-down shrink-0 transition-transform duration-200 rotate-180"></i> 
+                        </button>
+                    </h2>
+                    <div class="accordion-content p-2"> 
+                        <ul class="space-y-2">${itemsHTML}</ul>
+                    </div>
+                </div>`;
+            // --- AKHIR PERUBAHAN ---
+        }
+    }
+
+    const pageHTML = `
+        <div class="panel relative">
+            <button onclick="navigateTo('sprint_materi', document.querySelector('.sidebar-link[onclick*=\\'sprint_materi\\']'))"
+                    class="absolute top-4 right-4 md:top-6 md:right-6 h-10 w-10 flex items-center justify-center bg-gray-800/50 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-colors"
+                    aria-label="Kembali ke daftar sprint materi">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            <div class="mb-6 pr-12">
+                <h2 class="text-2xl font-bold text-purple-400">${sprintData.title}</h2>
+                <p class="text-sm text-gray-400">${sprintData.summary}</p>
+            </div>
+            <div class="border border-gray-700 rounded-lg bg-gray-900/50">
+                ${accordionHTML}
+            </div>
+        </div>
+    `;
+    appContent.innerHTML = pageHTML;
+    setupAccordionListeners();
+}
+
+function openSprintLatihan(itemId, filePath) {
+    if (!filePath || filePath === '#') {
+        showToast('Konten untuk latihan ini belum tersedia.', 'info');
+        return;
+    }
+    window.location.href = filePath;
+}
+
+</script>
+</body>
+</html>

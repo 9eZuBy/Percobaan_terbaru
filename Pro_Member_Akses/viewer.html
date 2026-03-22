@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UMT Pro - Materi Viewer</title>
+    <link rel="icon" type="image/png" href="UMT-Logo - Copy.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0D1117; --bg-panel: #161B22; --border-color: #30363D;
+            --text-primary: #C9D1D9; --text-secondary: #8B949E; --accent-cyan: #2F81F7;
+            --dropdown-bg: #21262d;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: sans-serif;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .viewer-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-panel);
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            gap: 10px;
+            z-index: 10;
+        }
+        .toolbar-section { display: flex; align-items: center; gap: 0.5rem; }
+        .toolbar-section.title-section { flex: 1; min-width: 0; justify-content: center; position: relative; }
+        .title-wrapper {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            cursor: pointer; max-width: 100%; padding: 4px 8px; border-radius: 6px; transition: background 0.2s;
+        }
+        .title-wrapper:hover { background-color: var(--border-color); }
+        .toolbar-title {
+            font-size: 1rem; font-weight: bold; margin: 0; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; max-width: 400px;
+        }
+        @media (max-width: 768px) { .toolbar-title { max-width: 150px; font-size: 0.9rem; } }
+        .title-icon { font-size: 0.8rem; color: var(--text-secondary); flex-shrink: 0; }
+        .title-dropdown {
+            display: none; position: absolute; top: 120%; left: 50%; transform: translateX(-50%);
+            width: max-content; max-width: 80vw; background-color: var(--dropdown-bg);
+            border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 1000; text-align: center;
+            user-select: text;
+        }
+        .title-dropdown.show { display: block; animation: fadeIn 0.2s ease-in-out; }
+        .full-title-text { color: var(--text-primary); font-size: 1rem; font-weight: bold; white-space: normal; line-height: 1.5; }
+        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        .toolbar-button {
+            background: none; border: 1px solid transparent; color: var(--text-primary);
+            cursor: pointer; padding: 0.5rem; border-radius: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .toolbar-button:hover:not(:disabled) { background-color: var(--border-color); }
+        .toolbar-button:disabled { color: var(--text-secondary); cursor: not-allowed; }
+
+        /*
+         * pdf-viewer: area scroll utama
+         * overflow: auto  → bisa scroll ke semua arah setelah render
+         * touch-action: pan-x pan-y → izinkan scroll native saat TIDAK sedang pinch
+         * -webkit-overflow-scrolling: touch → scroll smooth di iOS
+         */
+        .pdf-viewer {
+            flex-grow: 1;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            background-color: #0d1117;
+            position: relative;
+            touch-action: pan-x pan-y;
+        }
+
+        /*
+         * scroll-inner: wrapper yang lebarnya di-set JS setelah render
+         * agar scroll area mengikuti ukuran konten yang sebenarnya
+         */
+        #scroll-inner {
+            display: inline-block;
+            min-width: 100%;
+            min-height: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #canvas-container {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            transform-origin: top center;
+        }
+
+        .status-message {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 1.2rem; color: var(--text-secondary);
+        }
+
+        /* Indikator zoom */
+        #zoom-indicator {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 999;
+        }
+        #zoom-indicator.visible { opacity: 1; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div class="viewer-container">
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <a href="index.html" class="toolbar-button" title="Kembali">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+                <button id="prev-materi" class="toolbar-button" title="Sebelumnya">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-section title-section">
+                <div class="title-wrapper" id="title-trigger" title="Lihat Judul">
+                    <h1 id="materi-title-short" class="toolbar-title">Memuat...</h1>
+                    <i class="fa-solid fa-chevron-down title-icon"></i>
+                </div>
+                <div id="title-dropdown" class="title-dropdown">
+                    <div id="materi-title-full" class="full-title-text">Memuat materi...</div>
+                </div>
+            </div>
+
+            <div class="toolbar-section">
+                <button id="next-materi" class="toolbar-button" title="Selanjutnya">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
+                <div style="width: 1px; height: 20px; background: var(--border-color); margin: 0 5px;"></div>
+                <button id="zoom-out" class="toolbar-button" title="Perkecil">
+                    <i class="fa-solid fa-search-minus"></i>
+                </button>
+                <button id="zoom-in" class="toolbar-button" title="Perbesar">
+                    <i class="fa-solid fa-search-plus"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="pdf-viewer" class="pdf-viewer">
+            <!-- scroll-inner menentukan luas area scroll -->
+            <div id="scroll-inner">
+                <div id="canvas-container"></div>
+            </div>
+            <div id="status-message" class="status-message">Memuat PDF...</div>
+        </div>
+    </div>
+
+    <div id="zoom-indicator">100%</div>
+
+    <script src="data.js"></script>
+    <script src="pdfjs/build/pdf.mjs"></script>
+
+<script type="module">
+    import * as pdfjsLib from './pdfjs/build/pdf.mjs';
+
+    const token = sessionStorage.getItem('sessionToken');
+    if (!token) { window.location.href = '../Login/'; }
+
+    // --- Helper Functions ---
+    function markAsCompleted(itemId) {
+        const key = 'userCompletedItems';
+        let completed = JSON.parse(localStorage.getItem(key)) || [];
+        if (!completed.includes(itemId)) {
+            completed.push(itemId);
+            localStorage.setItem(key, JSON.stringify(completed));
+        }
+    }
+    function updateLastActivity(type, item) {
+        const key = 'userLastActivity';
+        let lastActivity = JSON.parse(localStorage.getItem(key)) || {};
+        lastActivity[type] = { id: item.id, title: item.title, filePath: item.filePath, videoId: item.videoId };
+        localStorage.setItem(key, JSON.stringify(lastActivity));
+    }
+
+    // --- DOM Elements ---
+    const titleShortEl    = document.getElementById('materi-title-short');
+    const titleFullEl     = document.getElementById('materi-title-full');
+    const titleTrigger    = document.getElementById('title-trigger');
+    const titleDropdown   = document.getElementById('title-dropdown');
+    const statusMessageEl = document.getElementById('status-message');
+    const viewerEl        = document.getElementById('pdf-viewer');
+    const scrollInner     = document.getElementById('scroll-inner');
+    const canvasContainer = document.getElementById('canvas-container');
+    const zoomIndicator   = document.getElementById('zoom-indicator');
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = './pdfjs/build/pdf.worker.mjs';
+
+    let pdfDoc       = null;
+    let currentScale = 1.0;
+    let autoFitScale = 1.0;
+
+    // --- Pinch Zoom State ---
+    let initialPinchDistance = 0;
+    let initialScale         = 1;
+    let isPinching           = false;
+
+    // --- Timers ---
+    let renderDebounceTimer = null;
+    let zoomIndicatorTimer  = null;
+
+    // --- Anti klik kanan & shortcut ---
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'p' || e.key === 'u')) {
+            e.preventDefault();
+        }
+    });
+
+    // --- Dropdown Logic ---
+    titleTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        titleDropdown.classList.toggle('show');
+        const icon = titleTrigger.querySelector('.title-icon');
+        icon.classList.replace(
+            titleDropdown.classList.contains('show') ? 'fa-chevron-down' : 'fa-chevron-up',
+            titleDropdown.classList.contains('show') ? 'fa-chevron-up'   : 'fa-chevron-down'
+        );
+    });
+    document.addEventListener('click', (e) => {
+        if (!titleTrigger.contains(e.target) && !titleDropdown.contains(e.target)) {
+            titleDropdown.classList.remove('show');
+            titleTrigger.querySelector('.title-icon').classList.replace('fa-chevron-up', 'fa-chevron-down');
+        }
+    });
+
+    // --- Zoom indicator ---
+    function showZoomIndicator(scale) {
+        zoomIndicator.textContent = Math.round(scale * 100) + '%';
+        zoomIndicator.classList.add('visible');
+        clearTimeout(zoomIndicatorTimer);
+        zoomIndicatorTimer = setTimeout(() => zoomIndicator.classList.remove('visible'), 1500);
+    }
+
+    // --- Calculate auto fit ---
+    const calculateAutoFitScale = async () => {
+        if (!pdfDoc) return 1.0;
+        const page = await pdfDoc.getPage(1);
+        const unscaledViewport = page.getViewport({ scale: 1.0 });
+        const containerWidth = viewerEl.clientWidth - 32;
+        return containerWidth / unscaledViewport.width;
+    };
+
+    /**
+     * updateScrollArea:
+     * Setelah render selesai, beri tahu browser ukuran konten
+     * yang sebenarnya agar scroll ke kiri/kanan/atas/bawah bisa bekerja.
+     */
+    const updateScrollArea = () => {
+        // Biarkan browser menghitung dulu ukuran naturalnya
+        scrollInner.style.width  = '';
+        scrollInner.style.height = '';
+
+        // Kemudian set ke ukuran konten yang sebenarnya
+        const contentW = canvasContainer.offsetWidth  + 32; // +32 = padding kiri kanan
+        const contentH = canvasContainer.offsetHeight + 32; // +32 = padding atas bawah
+
+        scrollInner.style.width  = Math.max(contentW, viewerEl.clientWidth)  + 'px';
+        scrollInner.style.height = Math.max(contentH, viewerEl.clientHeight) + 'px';
+    };
+
+    /**
+     * renderAllPages:
+     * Render semua halaman → update scroll area → scroll bisa ke semua arah
+     */
+    const renderAllPages = async () => {
+        if (!pdfDoc) return;
+
+        statusMessageEl.textContent = 'Memuat...';
+        statusMessageEl.style.display = 'block';
+
+        // Reset CSS transform sebelum render agar tidak double-scale
+        canvasContainer.style.transition = 'none';
+        canvasContainer.style.transform  = 'scale(1)';
+        canvasContainer.innerHTML = '';
+
+        const dpr = window.devicePixelRatio || 1;
+        const pagePromises = [];
+
+        for (let num = 1; num <= pdfDoc.numPages; num++) {
+            const promise = pdfDoc.getPage(num).then(page => {
+                const renderViewport = page.getViewport({ scale: currentScale * dpr });
+
+                const canvas = document.createElement('canvas');
+                const ctx    = canvas.getContext('2d');
+
+                canvas.height = renderViewport.height;
+                canvas.width  = renderViewport.width;
+
+                canvas.style.width        = `${renderViewport.width / dpr}px`;
+                canvas.style.height       = `${renderViewport.height / dpr}px`;
+                canvas.style.marginBottom = '1rem';
+                canvas.style.display      = 'block';
+                canvas.id = `page-${num}`;
+
+                canvasContainer.appendChild(canvas);
+                return page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+            });
+            pagePromises.push(promise);
+        }
+
+        await Promise.all(pagePromises);
+
+        statusMessageEl.style.display = 'none';
+
+        // KUNCI: update scroll area agar viewerEl tahu ukuran konten
+        updateScrollArea();
+
+        showZoomIndicator(currentScale);
+    };
+
+    /**
+     * onZoom: untuk tombol +/-
+     * Pertahankan posisi scroll relatif setelah zoom
+     */
+    const onZoom = (newScale) => {
+        if (!pdfDoc) return;
+        newScale = Math.max(autoFitScale * 0.5, Math.min(5.0, newScale));
+
+        // Simpan rasio posisi scroll sebelum zoom
+        const ratioX = viewerEl.scrollLeft / Math.max(viewerEl.scrollWidth,  1);
+        const ratioY = viewerEl.scrollTop  / Math.max(viewerEl.scrollHeight, 1);
+
+        currentScale = newScale;
+
+        renderAllPages().then(() => {
+            viewerEl.scrollLeft = ratioX * viewerEl.scrollWidth;
+            viewerEl.scrollTop  = ratioY * viewerEl.scrollHeight;
+        });
+    };
+
+    // =========================================================
+    //  PINCH ZOOM — SMOOTH SEPERTI GOOGLE DRIVE
+    //
+    //  Fase 1 touchmove : hanya CSS transform (GPU, nol lag)
+    //  Fase 2 touchend  : render ulang sebenarnya (debounce 200ms)
+    //                     + aktifkan kembali scroll ke semua arah
+    // =========================================================
+
+    viewerEl.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            isPinching = true;
+            initialPinchDistance = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY
+            );
+            initialScale = currentScale;
+            canvasContainer.style.transition = 'none';
+
+            // Matikan scroll saat pinch agar tidak bentrok
+            viewerEl.style.overflow    = 'hidden';
+            viewerEl.style.touchAction = 'none';
+        }
+    }, { passive: true });
+
+    viewerEl.addEventListener('touchmove', (e) => {
+        if (!isPinching || e.touches.length < 2) return;
+        e.preventDefault(); // cegah scroll sistem saat pinch
+
+        const dist = Math.hypot(
+            e.touches[0].pageX - e.touches[1].pageX,
+            e.touches[0].pageY - e.touches[1].pageY
+        );
+
+        const rawRatio    = dist / initialPinchDistance;
+        const minRatio    = (autoFitScale * 0.5) / initialScale;
+        const maxRatio    = 5.0 / initialScale;
+        const clamped     = Math.max(minRatio, Math.min(maxRatio, rawRatio));
+
+        // Hanya CSS transform — sangat ringan
+        canvasContainer.style.transform = `scale(${clamped})`;
+        showZoomIndicator(initialScale * clamped);
+
+    }, { passive: false });
+
+    viewerEl.addEventListener('touchend', (e) => {
+        if (!isPinching) return;
+        if (e.touches.length >= 2) return; // masih ada jari kedua
+
+        isPinching = false;
+
+        // Baca scale CSS saat ini
+        const matrix   = new DOMMatrix(window.getComputedStyle(canvasContainer).transform);
+        const cssScale = matrix.a;
+
+        let newScale = Math.max(autoFitScale * 0.5, Math.min(5.0, initialScale * cssScale));
+        currentScale = newScale;
+
+        // Sedikit transisi saat snap ke scale final
+        canvasContainer.style.transition = 'transform 0.15s ease-out';
+
+        // Simpan posisi scroll relatif
+        const ratioX = viewerEl.scrollLeft / Math.max(viewerEl.scrollWidth,  1);
+        const ratioY = viewerEl.scrollTop  / Math.max(viewerEl.scrollHeight, 1);
+
+        clearTimeout(renderDebounceTimer);
+        renderDebounceTimer = setTimeout(() => {
+            renderAllPages().then(() => {
+                // KUNCI: aktifkan kembali scroll setelah render selesai
+                viewerEl.style.overflow    = 'auto';
+                viewerEl.style.touchAction = 'pan-x pan-y';
+
+                // Kembalikan posisi scroll
+                viewerEl.scrollLeft = ratioX * viewerEl.scrollWidth;
+                viewerEl.scrollTop  = ratioY * viewerEl.scrollHeight;
+            });
+        }, 200);
+
+    }, { passive: true });
+
+    // Jika jari keluar layar tiba-tiba
+    viewerEl.addEventListener('touchcancel', () => {
+        if (isPinching) {
+            isPinching = false;
+            viewerEl.style.overflow    = 'auto';
+            viewerEl.style.touchAction = 'pan-x pan-y';
+            clearTimeout(renderDebounceTimer);
+            renderDebounceTimer = setTimeout(() => renderAllPages(), 200);
+        }
+    }, { passive: true });
+
+    // --- Resize Handler ---
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(async () => {
+            if (pdfDoc) {
+                const oldFitScale = autoFitScale;
+                autoFitScale = await calculateAutoFitScale();
+                if (Math.abs(currentScale - oldFitScale) < 0.1) {
+                    currentScale = autoFitScale;
+                    renderAllPages();
+                }
+            }
+        }, 300);
+    });
+
+    // --- INIT ---
+    function findContentDetails(contentId) {
+        for (const key in allContentData) {
+            const categoryData = allContentData[key];
+            const flatList = Array.isArray(categoryData)
+                ? categoryData
+                : Object.values(categoryData).flat();
+            const idx = flatList.findIndex(item => item.id === contentId);
+            if (idx !== -1) {
+                return {
+                    contentItem: flatList[idx],
+                    prevItem: idx > 0 ? flatList[idx - 1] : null,
+                    nextItem: idx < flatList.length - 1 ? flatList[idx + 1] : null,
+                    type: key
+                };
+            }
+        }
+        return null;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const contentId = urlParams.get('id');
+        if (!contentId) return;
+
+        const result = findContentDetails(contentId);
+        if (!result || !result.contentItem) {
+            titleShortEl.textContent = 'Error';
+            titleFullEl.textContent  = 'Tidak ditemukan.';
+            return;
+        }
+
+        const { contentItem, prevItem, nextItem, type } = result;
+        markAsCompleted(contentItem.id);
+        updateLastActivity(type, contentItem);
+
+        titleShortEl.textContent = contentItem.title;
+        titleFullEl.textContent  = contentItem.title;
+
+        try {
+            pdfDoc       = await pdfjsLib.getDocument(contentItem.filePath).promise;
+            autoFitScale = await calculateAutoFitScale();
+            currentScale = autoFitScale;
+            await renderAllPages();
+        } catch (err) {
+            console.error("Error:", err);
+            statusMessageEl.textContent = 'Gagal memuat PDF.';
+        }
+
+        const prevMateriBtn = document.getElementById('prev-materi');
+        const nextMateriBtn = document.getElementById('next-materi');
+
+        if (prevItem) {
+            prevMateriBtn.disabled = false;
+            prevMateriBtn.addEventListener('click', () => {
+                window.location.href = `viewer.html?id=${prevItem.id}`;
+            });
+        } else {
+            prevMateriBtn.disabled = true;
+        }
+
+        if (nextItem) {
+            nextMateriBtn.disabled = false;
+            nextMateriBtn.addEventListener('click', () => {
+                window.location.href = `viewer.html?id=${nextItem.id}`;
+            });
+        } else {
+            nextMateriBtn.disabled = true;
+        }
+
+        document.getElementById('zoom-in').addEventListener('click',  () => onZoom(currentScale + 0.25));
+        document.getElementById('zoom-out').addEventListener('click', () => onZoom(currentScale - 0.25));
+    });
+</script>
+</body>
+</html>

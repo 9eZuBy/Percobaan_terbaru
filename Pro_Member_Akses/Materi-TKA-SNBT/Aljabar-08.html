@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konsep Dasar Barisan dan Deret - UMT Learning</title>
+    <link rel="icon" type="image/png" href="../UMT-Logo - Copy.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+      MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0D1117; --bg-panel: #161B22; --border-color: #30363D;
+            --text-primary: #C9D1D9; --text-secondary: #8B949E; --accent-cyan: #2F81F7;
+            --accent-green: #39D353; --accent-red: #F85149;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 2rem auto; padding: 1rem 2rem; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 0.75rem; }
+        .back-link {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;
+            background-color: var(--accent-cyan); color: white; width: 50px; height: 50px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+        .back-link:hover { transform: scale(1.1); }
+        h1, h2 { color: var(--accent-cyan); }
+        h1 { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 1rem; border-left: 4px solid var(--accent-cyan); padding-left: 1rem; }
+        .hidden { display: none; }
+        .important-note {
+            background-color: rgba(47, 129, 247, 0.1); border-left: 4px solid var(--accent-cyan);
+            padding: 1rem; margin: 1.5rem 0; border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .quiz-accordion { border: 1px solid var(--border-color); border-radius: 0.5rem; margin-bottom: 1rem; overflow: hidden; }
+        .quiz-accordion-button {
+            background-color: var(--bg-panel); color: var(--text-primary);
+            width: 100%; padding: 1rem; text-align: left; font-size: 1.1rem; font-weight: 600;
+            border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .quiz-accordion-button:hover { background-color: #2a3038; }
+        .quiz-accordion-button .fas { transition: transform 0.3s ease; }
+        .quiz-accordion-button.active .fas { transform: rotate(180deg); }
+        .quiz-accordion-content { padding: 0 1rem 1rem 1rem; }
+        .question-text { font-weight: 500; margin-bottom: 1.5rem; }
+        .quiz-option, .mcma-option {
+            border: 2px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem;
+            margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s ease;
+        }
+        .options-container.answered .quiz-option:not(.correct):not(.wrong),
+        .options-container.answered .mcma-option {
+            opacity: 0.7; cursor: not-allowed;
+        }
+        .quiz-option:hover, .mcma-option:hover { border-color: var(--accent-cyan); }
+        .quiz-option.correct, .mcma-option.correct {
+            border-color: var(--accent-green); background-color: rgba(57, 211, 83, 0.1); font-weight: bold; opacity: 1;
+        }
+        .quiz-option.wrong, .mcma-option.wrong {
+            border-color: var(--accent-red); background-color: rgba(248, 81, 73, 0.1); opacity: 1;
+        }
+        .quiz-explanation {
+            margin-top: 1.5rem; padding: 1rem; border-left: 4px solid var(--accent-cyan);
+            background-color: rgba(47, 129, 247, 0.1); border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .confirm-btn {
+            background-color: var(--accent-cyan); color: white; border: none; padding: 10px 20px;
+            border-radius: 0.5rem; font-weight: bold; cursor: pointer; margin-top: 1rem; width: 100%;
+            transition: background-color 0.2s ease;
+        }
+        .confirm-btn:hover { background-color: #1f6eeb; }
+        .category-table { width: 100%; border-collapse: separate; border-spacing: 0 0.5rem; }
+        .category-table td { padding: 0.75rem; border: 2px solid var(--border-color); border-radius: 0.5rem; }
+        .category-table td:first-child { text-align: left; }
+        .category-table .correct { border-color: var(--accent-green); background-color: rgba(57, 211, 83, 0.1); }
+        .category-table .wrong { border-color: var(--accent-red); background-color: rgba(248, 81, 73, 0.1); }
+
+        /* --- SOLUSI UNTUK LATEX OVERFLOW --- */
+        p, li, .quiz-explanation, .important-note {
+            overflow-x: auto; padding-bottom: 8px;
+        }
+        /* --- STYLING SCROLLBAR AGAR SESUAI TEMA --- */
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-panel); }
+        ::-webkit-scrollbar-thumb { background-color: #30363D; border-radius: 4px; border: 2px solid var(--bg-panel); }
+        ::-webkit-scrollbar-thumb:hover { background-color: #49525e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link" title="Kembali ke Daftar">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+<h1>Konsep Dasar Barisan dan Deret</h1>
+<p>
+    Bab ini berfokus pada pola bilangan. Penting untuk memahami perbedaan fundamental antara dua konsep utama: **Barisan** dan **Deret**. Keduanya saling terkait erat tetapi memiliki makna yang berbeda.
+</p>
+
+<h2>1. Barisan (Sequence) - Daftar Berpola</h2>
+<p>
+    <b>Barisan</b> adalah sebuah daftar bilangan yang terurut dan mengikuti suatu aturan atau pola tertentu. Setiap bilangan dalam daftar ini disebut <b>suku</b>.
+</p>
+<ul>
+    <li>Notasi suku ke-n (suku di posisi ke-n) adalah $U_n$.</li>
+    <li>$U_1$ adalah suku pertama, $U_2$ adalah suku kedua, dan seterusnya.</li>
+    <li>Rumus $U_n$ adalah "cetak biru" yang memungkinkan kita mencari nilai suku manapun.</li>
+</ul>
+<p><b>Contoh:</b> Barisan bilangan genap: 2, 4, 6, 8, ...
+<br>Di sini, $U_1=2$, $U_2=4$, dan rumusnya adalah $U_n=2n$.</p>
+
+<h2>2. Deret (Series) - Jumlah Berpola</h2>
+<p>
+    <b>Deret</b> adalah <b>hasil penjumlahan</b> dari suku-suku dalam sebuah barisan.
+</p>
+<ul>
+    <li>Notasi jumlah $n$ suku pertama adalah $S_n$.</li>
+    <li>$S_n = U_1 + U_2 + \dots + U_n$.</li>
+</ul>
+<p><b>Contoh:</b> Deret bilangan genap: 2 + 4 + 6 + 8 + ...
+<br>$S_1 = 2$
+<br>$S_2 = 2 + 4 = 6$
+<br>$S_3 = 2 + 4 + 6 = 12$</p>
+
+<h2>3. Hubungan Fundamental antara $U_n$ dan $S_n$</h2>
+<p>
+    Ada hubungan logis yang sangat penting antara suku ke-n dan jumlah n suku pertama.
+</p>
+<div class="important-note">
+    <b>Tips & Strategi:</b>
+    <p>Nilai suku ke-n ($U_n$) adalah selisih antara jumlah total hingga suku ke-n ($S_n$) dan jumlah total hingga satu suku sebelumnya ($S_{n-1}$).</p>
+    $$ U_n = S_n - S_{n-1} \quad (\text{untuk } n>1) $$
+    <p>Gunakan rumus ini jika soal memberikan rumus $S_n$ dan menanyakan tentang $U_n$ atau ciri-ciri barisannya (misalnya, beda atau rasio).</p>
+</div>
+<p><b>Contoh Aplikasi:</b> Rumus jumlah n suku pertama suatu deret adalah $S_n = 2n^2 + 3n$. Tentukan rumus suku ke-n ($U_n$).</p>
+<ol>
+    <li>Tulis rumus $S_n$: $S_n = 2n^2 + 3n$.</li>
+    <li>Cari rumus $S_{n-1}$ dengan mengganti setiap $n$ dengan $(n-1)$:
+        <br>$S_{n-1} = 2(n-1)^2 + 3(n-1) = 2(n^2-2n+1) + 3n-3 = 2n^2-n-1$.
+    </li>
+    <li>Gunakan rumus hubungan:
+        <br>$U_n = S_n - S_{n-1}$
+        <br>$U_n = (2n^2+3n) - (2n^2-n-1)$
+        <br>$U_n = 2n^2+3n-2n^2+n+1 = 4n+1$.
+    </li>
+</ol>
+
+
+<h2>Uji Kompetensi</h2>
+<p>Kerjakan soal-soal berikut untuk menguji pemahaman Anda sesuai format TKA.</p>
+<div id="quiz-container"></div>
+</div>
+
+    <script>
+        if (!sessionStorage.getItem('sessionToken')) {
+            window.location.href = '../../Login/';
+        }
+        const quizzes = [
+            { q: "Sebuah daftar bilangan yang terurut dan mengikuti suatu pola tertentu disebut...", options: ["Deret", "Relasi", "Barisan", "Fungsi"], correct: 2, explanation: "Barisan adalah daftar bilangannya (dipisahkan koma), sedangkan Deret adalah hasil penjumlahannya." },
+            { q: "Dalam barisan 10, 7, 4, ..., nilai dari $U_3$ adalah...", options: ["21", "10", "7", "4"], correct: 3, explanation: "$U_3$ adalah notasi untuk suku ke-3. Pada daftar tersebut, suku ketiga adalah 4." },
+            { q: "Dari barisan 10, 7, 4, ..., nilai dari $S_3$ adalah...", options: ["4", "11", "21", "17"], correct: 2, explanation: "$S_3$ adalah notasi untuk jumlah 3 suku pertama. $S_3 = U_1+U_2+U_3 = 10+7+4 = 21$." },
+            { q: "Rumus jumlah n suku pertama suatu deret adalah $S_n = n^2+2n$. Suku ke-5 ($U_5$) deret tersebut adalah...", options: ["11", "24", "35", "59"], correct: 0, explanation: "Gunakan rumus $U_n=S_n-S_{n-1}$. $S_5 = 5^2+2(5) = 35$. $S_4 = 4^2+2(4) = 24$. Maka, $U_5 = S_5 - S_4 = 35 - 24 = 11$." },
+            { q: "Tentukan Benar atau Salah untuk setiap pernyataan berikut:", type: "category", statements: [{s: "$S_1$ selalu sama dengan $U_1$.", a: true}, {s: "Barisan adalah hasil penjumlahan suku-suku.", a: false}, {s: "$U_{10} = S_{10} - S_9$.", a: true}], explanation: "A: Jumlah 1 suku pertama tentu saja adalah nilai suku pertama itu sendiri (Benar). B: Penjumlahan suku-suku disebut deret (Salah). C: Sesuai dengan rumus hubungan $U_n = S_n - S_{n-1}$ (Benar)." },
+            { q: "Diberikan barisan dengan rumus $U_n = 5n-2$. Nilai dari $U_4 + U_5$ adalah...", options: ["18", "23", "41", "45"], correct: 2, explanation: "Cari nilai masing-masing suku terlebih dahulu. $U_4 = 5(4)-2 = 18$. $U_5 = 5(5)-2 = 23$. Maka, $U_4+U_5 = 18+23 = 41$." },
+            { q: "Rumus suku ke-n suatu barisan aritmetika adalah $U_n = 4n+1$. Rumus jumlah n suku pertamanya ($S_n$) adalah...", options: ["$2n^2+n$", "$2n^2+3n$", "$4n^2+n$", "$4n^2+5n$"], correct: 1, explanation: "Barisan ini aritmetika. Suku pertama $a=U_1=4(1)+1=5$. $S_n = \\frac{n}{2}(a+U_n) = \\frac{n}{2}(5 + (4n+1)) = \\frac{n}{2}(4n+6) = n(2n+3) = 2n^2+3n$." },
+            { q: "Diberikan deret dengan $S_n=5n^2-3n$. Manakah pernyataan yang benar? (Pilih semua jawaban yang benar)", type: "mcma", options: ["$S_2 = 14$.", "$U_1 = 2$.", "$U_2 = 12$.", "Barisan tersebut adalah barisan aritmetika."], correct: [0,1,2,3], explanation: "$S_1=5(1)^2-3(1)=2$, jadi $U_1=2$. $S_2=5(2)^2-3(2)=14$. $U_2=S_2-S_1=14-2=12$. Beda barisan $U_2-U_1=10$. Rumus $U_n = S_n - S_{n-1} = (5n^2-3n) - (5(n-1)^2-3(n-1)) = 10n-8$. Karena rumus $U_n$ linear, ini adalah barisan aritmetika." },
+            { q: "Notasi $\\sum_{i=1}^{4} U_i$ ekuivalen dengan...", options: ["$U_4$", "$S_4$", "$U_1+U_4$", "4U"], correct: 1, explanation: "Notasi Sigma ($\Sigma$) berarti penjumlahan. Menjumlahkan suku-suku dari $U_1$ hingga $U_4$ adalah definisi dari $S_4$." },
+            { q: "Tentukan Benar atau Salah untuk pernyataan-pernyataan berikut:", type: "category", statements: [{s: "Barisan 1, 1, 2, 3, 5... adalah contoh barisan geometri.", a: false}, {s: "$S_{20} - S_{18}$ sama dengan $U_{19} + U_{20}$.", a: true}, {s: "Jika $U_n$ selalu positif, maka nilai $S_n$ pasti selalu naik seiring bertambahnya n.", a: true}], explanation: "A: Itu adalah barisan Fibonacci (Salah). B: $S_{20} - S_{18} = (U_1+...+U_{20}) - (U_1+...+U_{18}) = U_{19}+U_{20}$ (Benar). C: Jika kita terus menambahkan bilangan positif, jumlahnya pasti akan selalu bertambah besar (Benar)." }
+        ];
+
+        // --- SCRIPT KUIS INTERAKTIF LENGKAP ---
+        if (!sessionStorage.getItem('sessionToken')) { /* window.location.href = '../../Login/'; */ }
+        const quizContainer = document.getElementById("quiz-container");
+        quizzes.forEach((quiz, index) => {
+            const quizEl = document.createElement("div"); quizEl.className = "quiz-accordion";
+            let optionsHtml = ''; let dataCorrect = '';
+            if (quiz.type === 'category') {
+                const correctAnswers = quiz.statements.map(s => s.a).join(',');
+                dataCorrect = `data-correct="${correctAnswers}"`;
+                optionsHtml = `<table class="category-table"><tbody>
+                    ${quiz.statements.map((stmt, i) => `
+                        <tr>
+                            <td>${String.fromCharCode(65 + i)}. ${stmt.s}</td>
+                            <td style="width: 80px; text-align: center;"><label><input type="radio" name="cat_q${index}_${i}" value="true"> Benar</label></td>
+                            <td style="width: 80px; text-align: center;"><label><input type="radio" name="cat_q${index}_${i}" value="false"> Salah</label></td>
+                        </tr>
+                    `).join('')}
+                </tbody></table>`;
+            } else if (quiz.type === 'mcma') {
+                dataCorrect = `data-correct="${quiz.correct.join(',')}"`;
+                optionsHtml = quiz.options.map((opt, i) =>
+                    `<div class="mcma-option" data-index="${i}"><label style="width: 100%; cursor: pointer; display: block;"><input type="checkbox" style="margin-right: 10px; vertical-align: middle;">${opt}</label></div>`
+                ).join("");
+            } else {
+                dataCorrect = `data-correct="${quiz.correct}"`;
+                optionsHtml = quiz.options.map((opt, i) => 
+                    `<div class="quiz-option" data-correct="${i === quiz.correct}">${opt}</div>`
+                ).join("");
+            }
+            const confirmBtnHtml = (quiz.type === 'category' || quiz.type === 'mcma') ? `<button class="confirm-btn">Konfirmasi Jawaban</button>` : '';
+            quizEl.innerHTML = `
+                <button class="quiz-accordion-button"><span>Soal ${index + 1}</span><i class="fas fa-chevron-down"></i></button>
+                <div class="quiz-accordion-content hidden"><p class="question-text">${quiz.q}</p>
+                    <div class="options-container" data-type="${quiz.type || 'pg'}" ${dataCorrect}>${optionsHtml}</div>
+                    ${confirmBtnHtml}
+                    <div class="quiz-explanation hidden"><b>Pembahasan:</b> ${quiz.explanation}</div>
+                </div>`;
+            quizContainer.appendChild(quizEl);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.quiz-accordion-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    button.classList.toggle('active'); content.classList.toggle('hidden');
+                });
+            });
+
+            document.querySelectorAll('.quiz-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const optionsContainer = option.parentElement;
+                    if (optionsContainer.dataset.type === 'pg' && !optionsContainer.classList.contains('answered')) {
+                        optionsContainer.classList.add('answered');
+                        if (option.dataset.correct === 'true') {
+                            option.classList.add('correct');
+                        } else {
+                            option.classList.add('wrong');
+                            const correctOption = optionsContainer.querySelector('[data-correct="true"]');
+                            if (correctOption) correctOption.classList.add('correct');
+                        }
+                        const explanation = optionsContainer.nextElementSibling;
+                        explanation.classList.remove('hidden'); MathJax.typesetPromise([explanation]);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.mcma-option label').forEach(label => {
+                label.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = label.querySelector('input[type="checkbox"]');
+                        if (checkbox && !checkbox.disabled) { checkbox.checked = !checkbox.checked; }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.confirm-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const optionsContainer = button.previousElementSibling;
+                    const type = optionsContainer.dataset.type;
+                    if (optionsContainer.classList.contains('answered')) return;
+                    optionsContainer.classList.add('answered'); button.style.display = 'none';
+
+                    if (type === 'category') {
+                        const correctAnswers = optionsContainer.dataset.correct.split(',');
+                        const rows = optionsContainer.querySelectorAll('tr');
+                        rows.forEach((row, i) => {
+                            const radios = row.querySelectorAll('input[type="radio"]');
+                            const selected = Array.from(radios).find(r => r.checked);
+                            const correctAnswer = correctAnswers[i];
+                            
+                            if (selected) {
+                                const selectedCell = selected.parentElement.closest('td');
+                                if (selected.value === correctAnswer) {
+                                    selectedCell.classList.add('correct');
+                                } else {
+                                    selectedCell.classList.add('wrong');
+                                }
+                            }
+
+                            if (!selected || selected.value !== correctAnswer) {
+                                const correctRadio = Array.from(radios).find(r => r.value === correctAnswer);
+                                if (correctRadio) {
+                                    correctRadio.parentElement.closest('td').classList.add('correct');
+                                }
+                            }
+                            radios.forEach(r => r.disabled = true);
+                        });
+                    } else if (type === 'mcma') {
+                        const correctIndices = optionsContainer.dataset.correct.split(',');
+                        const options = optionsContainer.querySelectorAll('.mcma-option');
+                        options.forEach((opt) => {
+                            const checkbox = opt.querySelector('input');
+                            const index = opt.dataset.index;
+                            const isChecked = checkbox.checked;
+                            const isCorrectAnswer = correctIndices.includes(index);
+                            
+                            if (isChecked && isCorrectAnswer) { opt.classList.add('correct');
+                            } else if (isChecked && !isCorrectAnswer) { opt.classList.add('wrong');
+                            } else if (!isChecked && isCorrectAnswer) { opt.classList.add('correct'); }
+                            checkbox.disabled = true;
+                        });
+                    }
+                    const explanation = optionsContainer.nextElementSibling;
+                    explanation.classList.remove('hidden'); MathJax.typesetPromise([explanation]);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
