@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esensi Nilai Mutlak - UMT Learning</title>
+    <link rel="icon" type="image/png" href="../UMT-Logo - Copy.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+      MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0D1117; --bg-panel: #161B22; --border-color: #30363D;
+            --text-primary: #C9D1D9; --text-secondary: #8B949E; --accent-cyan: #2F81F7;
+            --accent-green: #39D353; --accent-red: #F85149;
+        }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container { max-width: 800px; margin: 2rem auto; padding: 1rem 2rem; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 0.75rem; }
+        .back-link {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            background-color: var(--accent-cyan);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+        .back-link:hover { transform: scale(1.1); }
+        h1, h2 { color: var(--accent-cyan); }
+        h1 { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 1rem; border-left: 4px solid var(--accent-cyan); padding-left: 1rem; }
+        .hidden { display: none; }
+
+        /* Video Responsif */
+        .embed-container {
+            position: relative; overflow: hidden; width: 100%;
+            padding-top: 56.25%; border-radius: 0.5rem; border: 1px solid var(--border-color);
+        }
+        .embed-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        /* Quiz Accordion */
+        .quiz-accordion { border: 1px solid var(--border-color); border-radius: 0.5rem; margin-bottom: 1rem; overflow: hidden; }
+        .quiz-accordion-button {
+            background-color: var(--bg-panel); color: var(--text-primary);
+            width: 100%; padding: 1rem; text-align: left; font-size: 1.1rem; font-weight: 600;
+            border: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .quiz-accordion-button:hover { background-color: #2a3038; }
+        .quiz-accordion-button .fas { transition: transform 0.3s ease; }
+        .quiz-accordion-button.active .fas { transform: rotate(180deg); }
+        .quiz-accordion-content { padding: 0 1rem 1rem 1rem; }
+        .question-text { font-weight: 500; margin-bottom: 1.5rem; }
+        .quiz-option {
+            border: 2px solid var(--border-color); border-radius: 0.5rem;
+            padding: 0.75rem; margin-bottom: 0.5rem; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .options-container.answered .quiz-option:not(.correct):not(.wrong) { opacity: 0.6; cursor: not-allowed; }
+        .quiz-option:hover { border-color: var(--accent-cyan); }
+        .quiz-option.correct { border-color: var(--accent-green); background-color: rgba(57, 211, 83, 0.1); font-weight: bold; }
+        .quiz-option.wrong { border-color: var(--accent-red); background-color: rgba(248, 81, 73, 0.1); }
+        .quiz-explanation {
+            margin-top: 1.5rem; padding: 1rem; border-left: 4px solid var(--accent-cyan);
+            background-color: rgba(47, 129, 247, 0.1); border-radius: 0 0.5rem 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link" title="Kembali ke Daftar">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+
+        <h1>Esensi Nilai Mutlak</h1>
+        <p>
+            Nilai mutlak adalah konsep matematika yang menggambarkan <b>jarak suatu bilangan terhadap nol</b> pada garis bilangan, tanpa memperhatikan arahnya.
+            Dengan kata lain, nilai mutlak selalu bernilai <b>tidak negatif</b>.
+        </p>
+        <p>
+            Secara simbol, nilai mutlak dari $x$ ditulis sebagai $\lvert x \rvert$ dan didefinisikan sebagai:
+            $$ \lvert x \rvert =
+            \begin{cases}
+            x, & \text{jika } x \ge 0 \\
+            -x, & \text{jika } x < 0
+            \end{cases} $$
+        </p>
+        <p>
+            Nilai mutlak merupakan <b>jembatan</b> antara konsep jarak di dunia nyata dengan konsep abstrak dalam matematika.
+            Di kehidupan sehari-hari, jarak selalu melibatkan <b>minimal dua titik acuan</b> — misalnya jarak antara dua kota, atau antara posisi kita dengan sebuah objek.
+            Matematika menerjemahkan ide ini melalui <i>garis bilangan</i> dan menggunakan nilai mutlak untuk mengukurnya.
+        </p>
+        <p>
+            Jika salah satu titik acuannya adalah nol, kita menulis jaraknya sebagai $\lvert x \rvert$.
+            Namun, nilai mutlak juga dapat mengukur jarak antara dua bilangan $a$ dan $b$, yang ditulis sebagai $\lvert a - b \rvert$.
+            Bentuk ini mengabaikan urutan pengurangan, sehingga hasilnya selalu tidak negatif — persis seperti jarak di dunia nyata yang tidak pernah bernilai negatif.
+        </p>
+        <p>
+            Memahami bahwa nilai mutlak adalah <i>ukuran jarak</i> membuat kita lebih mudah memahami sifat-sifatnya, serta lebih tepat saat menggunakannya untuk memecahkan persamaan atau pertidaksamaan.
+        </p>
+        <p>
+            Untuk pemahaman yang lebih mendalam dan disertai visualisasi yang jelas, tonton video berikut:
+        </p>
+
+        <div class="embed-container">
+            <iframe src="https://www.youtube.com/embed/-pETqV252Zc" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+        </div>
+
+        <h2>Uji Pemahaman Anda</h2>
+        <p>Pilih jawaban yang tepat dan baca pembahasan setelah menjawab.</p>
+
+        <!-- Kuis -->
+        <div id="quiz-container"></div>
+    </div>
+
+    <script>
+        if (!sessionStorage.getItem('sessionToken')) {
+            window.location.href = '../../Login/';
+        }
+
+        const quizzes = [
+            {
+                q: "Apa arti dari $\\lvert -7 \\rvert$?",
+                options: ["-7", "7", "0", "-(-7)"],
+                correct: 1,
+                explanation: "Nilai mutlak mengabaikan tanda negatif. Jadi $\\lvert -7 \\rvert = 7$."
+            },
+            {
+                q: "Manakah yang benar mengenai nilai mutlak?",
+                options: [
+                    "Selalu positif",
+                    "Selalu nol",
+                    "Selalu tidak negatif",
+                    "Selalu negatif"
+                ],
+                correct: 2,
+                explanation: "Nilai mutlak tidak pernah negatif, tetapi bisa nol. Jadi jawabannya adalah 'Selalu tidak negatif'."
+            },
+            {
+                q: "Jika $\\lvert x \\rvert = 5$, maka nilai $x$ adalah...",
+                options: [
+                    "Hanya 5",
+                    "Hanya -5",
+                    "5 atau -5",
+                    "Tidak ada jawaban"
+                ],
+                correct: 2,
+                explanation: "$\\lvert x \\rvert = 5$ berarti jarak x dari nol adalah 5 satuan, jadi x bisa 5 atau -5 karena dalam konsep dunia nyata kalau kita terapkan dalam garis bilangan jarak dari 0 ke 5 atau 5 ke 0 itu adalah 5 satuan begitu juga dengan jarak dari -5 ke 0 atau 0 ke -5 itu juga 5 satuan dan arti dari tanpa memeperhatikan arah itu sendiri maksud nya adalah kita akan mencari suatu nilai jarak yang berjarak 5 satuan dari acuan 0 tersebut dalam segala kemungkinan yang mungkin dibuat dalam garis bilangan tersebut. makanya dikatakan tanpa memperhatikan arah karena dicari segala jarak yang mungkin dari acuan 0 tersebut dengan menggunakan konsep dunia nyata dari jarak yaitu jarak suatu objek ke objek yang lain pasti tidak akan pernah bernilai negatif"
+            },
+            {
+                q: "Nilai mutlak dari suatu bilangan merepresentasikan...",
+                options: [
+                    "Jarak bilangan tersebut dari nol pada garis bilangan",
+                    "Besar bilangan tersebut tanpa memperhatikan tanda",
+                    "Keduanya benar",
+                    "Keduanya salah"
+                ],
+                correct: 2,
+                explanation: "Nilai mutlak adalah jarak bilangan dari nol pada garis bilangan, yang selalu positif, sehingga kedua pernyataan benar."
+            },
+            {
+                q: "Hasil dari $\\lvert -3 + 8 \\rvert$ adalah...",
+                options: ["-5", "5", "8", "3"],
+                correct: 1,
+                explanation: "-3 + 8 = 5, dan $\\lvert 5 \\rvert = 5$. -3 + 8 = 5. Konsep nilai mutlak menyatakan bahwa kita hanya mengambil jarak bilangan itu dari nol tanpa memperhatikan arah. Jarak 5 dari nol adalah 5 satuan, sehingga $|5| = 5$. Tidak mungkin bernilai negatif karena jarak dalam definisi nilai mutlak selalu non-negatif dan juga perlu kita tahu $|-3 + 8|$ dapat ditulis sebagai $|-3 - (-8)|$. Dalam konsep nilai mutlak, ini berarti mencari <b>jarak antara titik -3 dan titik -8 pada garis bilangan</b>. Jarak tersebut adalah $5$ satuan, karena selisih antara -8 dan -3 adalah $5$, tanpa mempedulikan arah. Alternatif lain: $|-3 + 8|$ juga dapat dipandang sebagai $|8 - 3|$, yang secara makna jarak adalah $5$ satuan. Intinya, nilai mutlak selalu menggambarkan <b>Jarak</b> yang nilainya tidak pernah negatif."
+            }
+        ];
+
+        const quizContainer = document.getElementById("quiz-container");
+
+        quizzes.forEach((quiz, index) => {
+            const quizEl = document.createElement("div");
+            quizEl.className = "quiz-accordion";
+            quizEl.innerHTML = `
+                <button class="quiz-accordion-button">
+                    <span>Kuis ${index + 1}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="quiz-accordion-content hidden">
+                    <p class="question-text">${quiz.q}</p>
+                    <div class="options-container">
+                        ${quiz.options.map((opt, i) => 
+                            `<div class="quiz-option" data-correct="${i === quiz.correct}">${opt}</div>`
+                        ).join("")}
+                    </div>
+                    <div class="quiz-explanation hidden">
+                        <b>Pembahasan:</b> ${quiz.explanation}
+                    </div>
+                </div>
+            `;
+            quizContainer.appendChild(quizEl);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const accordionButtons = document.querySelectorAll('.quiz-accordion-button');
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    accordionButtons.forEach(otherButton => {
+                        if (otherButton !== button) {
+                            otherButton.classList.remove('active');
+                            otherButton.nextElementSibling.classList.add('hidden');
+                        }
+                    });
+                    button.classList.toggle('active');
+                    content.classList.toggle('hidden');
+                });
+            });
+
+            const quizOptions = document.querySelectorAll('.quiz-option');
+            quizOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const optionsContainer = option.parentElement;
+                    if (optionsContainer.classList.contains('answered')) return;
+                    optionsContainer.classList.add('answered');
+
+                    const explanation = optionsContainer.nextElementSibling;
+                    explanation.classList.remove('hidden');
+
+                    if (option.dataset.correct === 'true') {
+                        option.classList.add('correct');
+                    } else {
+                        option.classList.add('wrong');
+                        const correctOption = optionsContainer.querySelector('[data-correct="true"]');
+                        if (correctOption) {
+                            correctOption.classList.add('correct');
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
